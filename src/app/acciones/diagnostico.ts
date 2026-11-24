@@ -90,7 +90,7 @@ export async function hallazgoAAccion(proyecto_id: string, hallazgo_id: string):
 }
 
 export async function guardarPlantilla(id: string | null, nombre: string, area: E["area_auditoria"] | null,
-  descripcion: string | null, contenido: ContenidoAuditoria): Promise<Res> {
+  descripcion: string | null, contenido: ContenidoAuditoria, tipo: E["tipo_plantilla"] = "auditoria"): Promise<Res> {
   const { supabase, perfil } = await getSesion();
   if (!nombre.trim()) return { ok: false, error: "Ponle nombre a la plantilla." };
   if (id) {
@@ -99,7 +99,7 @@ export async function guardarPlantilla(id: string | null, nombre: string, area: 
     revalidatePath("/biblioteca", "layout");
     return error ? err(error) : { ok: true, id };
   }
-  const { data, error } = await supabase.from("plantillas").insert({ organizacion_id: perfil.organizacion_id, tipo: "auditoria", nombre, area, descripcion, contenido }).select("id").single();
+  const { data, error } = await supabase.from("plantillas").insert({ organizacion_id: perfil.organizacion_id, tipo, nombre, area, descripcion, contenido }).select("id").single();
   revalidatePath("/biblioteca", "layout");
   return error ? err(error) : { ok: true, id: data.id };
 }

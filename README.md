@@ -19,9 +19,11 @@ Supabase (Postgres, Auth, Storage, RLS) · Recharts.
 | Proyecto · Actas | Actas con acuerdos que se convierten en tareas |
 | Negocios | Ficha del local, contactos, historial de proyectos, documentación general |
 | Agenda | Visitas, auditorías, entregas, reuniones y formaciones |
-| Biblioteca | 8 plantillas de auditoría (cocina, compras, almacén, sala, carta, equipo, experiencia, APPCC) editables y versionadas |
+| Biblioteca | Plantillas de auditoría (8 áreas), procedimientos y checklists, editables y versionadas. Un estándar que funciona en un cliente se guarda en la biblioteca con un clic |
 | Ajustes | Nombre de la consultora, tus datos y tarifa por hora |
 | Proyecto · Costes y compras | Subida de facturas y albaranes (PDF o foto) con lectura automática, revisión línea a línea, enlace a productos (aprende de facturas anteriores), histórico de precios, alertas de subida con platos afectados, comparativa de proveedores con ahorro anual estimado |
+| Proyecto · Inventario y mermas | Registro rápido de mermas por motivo (valoradas solas), recuentos de inventario desde el móvil que congelan el precio al cerrar, y consumo real (inicial + compras − final) frente al teórico de los escandallos según las ventas |
+| Proyecto · Estándares y formación | Procedimientos, checklists y fichas del local con versión, estado (borrador / en prueba / implantado) y responsable; hoja imprimible (checklist semanal con casillas o SOP numerado); registro de formaciones con asistencia y valoración |
 | Proyecto · Escandallos y menú | Escandallos con merma y elaboraciones anidadas que se recalculan con el último precio de compra, food cost, margen, PVP recomendado según el objetivo del negocio, alérgenos, y matriz de ingeniería de menú (Estrella / Caballo / Puzzle / Perro) con las ventas mensuales por plato |
 
 Las pestañas de Ventas y resultados e Informes aparecen marcadas como Fase 3. Los productos, facturas y escandallos son de cada negocio; los proveedores son tuyos y comunes a todos los clientes.
@@ -75,5 +77,4 @@ Tipos de la base de datos: `npx supabase gen types typescript --local > src/lib/
 
 ## Próximas fases
 
-- **Fase 2 (pendiente)**: inventario y mermas por motivo; SOPs, checklists y formación.
 - **Fase 3**: importación de ventas, cuenta de resultados, prime cost, RevPASH, antes/después; informes PDF; horas y presupuestos; integración con TPV.

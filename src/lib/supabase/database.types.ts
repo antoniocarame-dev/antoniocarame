@@ -299,6 +299,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"estandares": {
+                  Row: {
+                    "area": Database["public"]['Enums']["area_auditoria"] | null,"contenido": NonNullable<Json>,"created_at": string,"estado": Database["public"]['Enums']["estado_estandar"],"fecha_implantacion": string | null,"id": string,"plantilla_id": string | null,"proyecto_id": string,"responsable_externo": string | null,"tipo": Database["public"]['Enums']["tipo_estandar"],"titulo": string,"updated_at": string,"version": number,"visible_cliente": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "area"?: Database["public"]['Enums']["area_auditoria"] | null,"contenido"?: NonNullable<Json>,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_estandar"],"fecha_implantacion"?: string | null,"id"?: string,"plantilla_id"?: string | null,"proyecto_id": string,"responsable_externo"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_estandar"],"titulo": string,"updated_at"?: string,"version"?: number,"visible_cliente"?: boolean
+                  }
+                  Update: {
+                    "area"?: Database["public"]['Enums']["area_auditoria"] | null,"contenido"?: NonNullable<Json>,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_estandar"],"fecha_implantacion"?: string | null,"id"?: string,"plantilla_id"?: string | null,"proyecto_id"?: string,"responsable_externo"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_estandar"],"titulo"?: string,"updated_at"?: string,"version"?: number,"visible_cliente"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "estandares_plantilla_id_fkey"
+      columns: ["plantilla_id"]
+isOneToOne: false
+      referencedRelation: "plantillas"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "estandares_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "estandares_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"eventos": {
                   Row: {
                     "creado_por": string | null,"created_at": string,"fin": string | null,"id": string,"inicio": string,"lugar": string | null,"notas": string | null,"organizacion_id": string,"proyecto_id": string | null,"tipo": Database["public"]['Enums']["tipo_evento"],"titulo": string
@@ -383,6 +415,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "fases_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"formaciones": {
+                  Row: {
+                    "asistentes": NonNullable<Json>,"contenido": string | null,"created_at": string,"duracion_h": number,"estandar_id": string | null,"fecha": string,"formador": string | null,"id": string,"proyecto_id": string,"titulo": string,"valoracion": number | null,"visible_cliente": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "asistentes"?: NonNullable<Json>,"contenido"?: string | null,"created_at"?: string,"duracion_h"?: number,"estandar_id"?: string | null,"fecha"?: string,"formador"?: string | null,"id"?: string,"proyecto_id": string,"titulo": string,"valoracion"?: number | null,"visible_cliente"?: boolean
+                  }
+                  Update: {
+                    "asistentes"?: NonNullable<Json>,"contenido"?: string | null,"created_at"?: string,"duracion_h"?: number,"estandar_id"?: string | null,"fecha"?: string,"formador"?: string | null,"id"?: string,"proyecto_id"?: string,"titulo"?: string,"valoracion"?: number | null,"visible_cliente"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "formaciones_estandar_id_fkey"
+      columns: ["estandar_id"]
+isOneToOne: false
+      referencedRelation: "estandares"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "formaciones_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "formaciones_proyecto_id_fkey"
       columns: ["proyecto_id"]
 isOneToOne: false
       referencedRelation: "v_proyectos_resumen"
@@ -523,6 +587,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"inventario_lineas": {
+                  Row: {
+                    "cantidad": number | null,"inventario_id": string,"precio": number | null,"producto_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cantidad"?: number | null,"inventario_id": string,"precio"?: number | null,"producto_id": string
+                  }
+                  Update: {
+                    "cantidad"?: number | null,"inventario_id"?: string,"precio"?: number | null,"producto_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "inventario_lineas_inventario_id_fkey"
+      columns: ["inventario_id"]
+isOneToOne: false
+      referencedRelation: "inventarios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "inventario_lineas_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "productos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "inventario_lineas_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "v_productos_precio"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"inventarios": {
+                  Row: {
+                    "created_at": string,"estado": Database["public"]['Enums']["estado_inventario"],"fecha": string,"id": string,"negocio_id": string,"nombre": string,"notas": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"estado"?: Database["public"]['Enums']["estado_inventario"],"fecha"?: string,"id"?: string,"negocio_id": string,"nombre": string,"notas"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"estado"?: Database["public"]['Enums']["estado_inventario"],"fecha"?: string,"id"?: string,"negocio_id"?: string,"nombre"?: string,"notas"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "inventarios_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"kpi_valores": {
                   Row: {
                     "fuente": string,"id": string,"kpi_id": string,"nota": string | null,"periodo": string,"valor": number
@@ -595,6 +711,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "lineas_factura_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "v_productos_precio"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"mermas": {
+                  Row: {
+                    "cantidad": number,"coste": number,"created_at": string,"escandallo_id": string | null,"fecha": string,"id": string,"motivo": Database["public"]['Enums']["motivo_merma"],"negocio_id": string,"notas": string | null,"producto_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cantidad": number,"coste"?: number,"created_at"?: string,"escandallo_id"?: string | null,"fecha"?: string,"id"?: string,"motivo"?: Database["public"]['Enums']["motivo_merma"],"negocio_id": string,"notas"?: string | null,"producto_id"?: string | null
+                  }
+                  Update: {
+                    "cantidad"?: number,"coste"?: number,"created_at"?: string,"escandallo_id"?: string | null,"fecha"?: string,"id"?: string,"motivo"?: Database["public"]['Enums']["motivo_merma"],"negocio_id"?: string,"notas"?: string | null,"producto_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "mermas_escandallo_id_fkey"
+      columns: ["escandallo_id"]
+isOneToOne: false
+      referencedRelation: "escandallos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "mermas_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "mermas_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "productos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "mermas_producto_id_fkey"
       columns: ["producto_id"]
 isOneToOne: false
       referencedRelation: "v_productos_precio"
@@ -959,7 +1113,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "comparte_proyecto":
+            "cerrar_inventario":
+{ Args: { "inv": string }; Returns: undefined
+                           },
+"comparte_proyecto":
 { Args: { "u": string }; Returns: boolean
                            },
 "es_admin":
@@ -1009,7 +1166,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_factura": "pendiente"|"validada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_documento_compra": "factura"|"albaran","tipo_escandallo": "plato"|"elaboracion","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe","unidad_compra": "kg"|"l"|"ud"
+            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_estandar": "borrador"|"en_prueba"|"implantado","estado_factura": "pendiente"|"validada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_inventario": "abierto"|"cerrado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","motivo_merma": "caducidad"|"deterioro"|"sobreproduccion"|"error_elaboracion"|"devolucion"|"rotura"|"otro","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_documento_compra": "factura"|"albaran","tipo_escandallo": "plato"|"elaboracion","tipo_estandar": "sop"|"checklist"|"ficha"|"manual","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe","unidad_compra": "kg"|"l"|"ud"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1129,7 +1286,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_factura": ["pendiente", "validada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_documento_compra": ["factura", "albaran"],"tipo_escandallo": ["plato", "elaboracion"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"],"unidad_compra": ["kg", "l", "ud"]
+            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_estandar": ["borrador", "en_prueba", "implantado"],"estado_factura": ["pendiente", "validada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_inventario": ["abierto", "cerrado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"motivo_merma": ["caducidad", "deterioro", "sobreproduccion", "error_elaboracion", "devolucion", "rotura", "otro"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_documento_compra": ["factura", "albaran"],"tipo_escandallo": ["plato", "elaboracion"],"tipo_estandar": ["sop", "checklist", "ficha", "manual"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"],"unidad_compra": ["kg", "l", "ud"]
           }
         }
 } as const

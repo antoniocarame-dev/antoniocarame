@@ -104,3 +104,35 @@ export function ingenieriaMenu(platos: { id: string; nombre: string; unidades: n
   });
   return { filas, total, margenMedio, umbral, contribucionTotal: filas.reduce((s, f) => s + f.contribucion, 0) };
 }
+
+/**
+ * Consumo teórico de cada producto (cantidad bruta) a partir de las raciones vendidas.
+ * Las elaboraciones se descomponen en sus productos según su rendimiento.
+ */
+export function consumoTeorico(escandallos: Escandallo[], unidadesPorPlato: Map<string, number>) {
+  const esc = new Map(escandallos.map((e) => [e.id, e]));
+  const total = new Map<string, number>();
+  const sumar = (id: string, factor: number, pila: string[]) => {
+    const e = esc.get(id);
+    if (!e || pila.includes(id)) return;
+    for (const i of e.ingredientes_escandallo) {
+      const q = Number(i.cantidad) * factor;
+      if (i.producto_id) total.set(i.producto_id, (total.get(i.producto_id) ?? 0) + q);
+      else if (i.sub_escandallo_id) {
+        const sub = esc.get(i.sub_escandallo_id);
+        const rinde = Number(sub?.rendimiento ?? sub?.raciones ?? 1) || 1;
+        sumar(i.sub_escandallo_id, q / rinde, [...pila, id]);
+      }
+    }
+  };
+  for (const [id, uds] of unidadesPorPlato) {
+    const e = esc.get(id);
+    if (e) sumar(id, uds / (Number(e.raciones) || 1), []);
+  }
+  return total;
+}
+
+export const MOTIVOS_MERMA: Record<string, string> = {
+  caducidad: "Caducidad", deterioro: "Deterioro", sobreproduccion: "Sobreproducción", error_elaboracion: "Error de elaboración",
+  devolucion: "Devolución de cliente", rotura: "Rotura", otro: "Otro",
+};

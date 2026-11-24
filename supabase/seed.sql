@@ -449,3 +449,110 @@ insert into ventas_plato (escandallo_id, periodo, unidades) values
  ('92000000-0000-0000-0000-000000000004','2026-11-01',360),('92000000-0000-0000-0000-000000000005','2026-11-01',80),
  ('92000000-0000-0000-0000-000000000006','2026-11-01',350),('92000000-0000-0000-0000-000000000007','2026-11-01',280),
  ('92000000-0000-0000-0000-000000000008','2026-11-01',105);
+
+-- =============================================================
+-- Inventarios, compras de octubre y mermas · Freiduría El Varadero
+-- =============================================================
+insert into facturas (id, negocio_id, proveedor_id, tipo, numero, fecha, base, estado) values
+ ('91000000-0000-0000-0000-000000000011','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000001','factura','PBS-2026-1090','2026-10-31',null,'pendiente'),
+ ('91000000-0000-0000-0000-000000000012','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000002','factura','LP-7741','2026-10-31',null,'pendiente'),
+ ('91000000-0000-0000-0000-000000000013','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000003','factura','AS/26/4102','2026-10-30',null,'pendiente'),
+ ('91000000-0000-0000-0000-000000000014','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000004','factura','HG-87911','2026-10-31',null,'pendiente');
+insert into lineas_factura (factura_id, orden, producto_id, descripcion, cantidad, unidad, precio_unitario, iva_pct, importe)
+select f::uuid, o, (select id from productos where nombre = pn and negocio_id = 'b0000000-0000-0000-0000-000000000001'), upper(pn) || ' · OCTUBRE', c, u, pu, 10, round(c * pu, 2) from (values
+ ('91000000-0000-0000-0000-000000000011',1,'Chocos limpios',165,'kg',12.40),('91000000-0000-0000-0000-000000000011',2,'Cazón en adobo',135,'kg',10.20),
+ ('91000000-0000-0000-0000-000000000011',3,'Boquerón fresco',130,'kg',6.30),
+ ('91000000-0000-0000-0000-000000000012',1,'Calamar nacional',100,'kg',14.90),('91000000-0000-0000-0000-000000000012',2,'Pijota',38,'kg',8.40),
+ ('91000000-0000-0000-0000-000000000012',3,'Gamba blanca de Huelva',26,'kg',29.50),
+ ('91000000-0000-0000-0000-000000000013',1,'Harina especial fritura',105,'kg',1.15),('91000000-0000-0000-0000-000000000013',2,'Aceite de girasol alto oleico',210,'l',1.98),
+ ('91000000-0000-0000-0000-000000000013',3,'Aceite de oliva virgen extra',12,'l',6.40),('91000000-0000-0000-0000-000000000013',4,'Vinagre de Jerez',2,'l',3.20),
+ ('91000000-0000-0000-0000-000000000014',1,'Patata',95,'kg',0.92),('91000000-0000-0000-0000-000000000014',2,'Tomate pera',22,'kg',1.95),
+ ('91000000-0000-0000-0000-000000000014',3,'Pimiento verde',9,'kg',1.90),('91000000-0000-0000-0000-000000000014',4,'Cebolla',9,'kg',0.95),
+ ('91000000-0000-0000-0000-000000000014',5,'Limón',20,'kg',1.40)
+) as v(f,o,pn,c,u,pu);
+update facturas f set base = (select sum(importe) from lineas_factura where factura_id = f.id), iva = round((select sum(importe) from lineas_factura where factura_id = f.id) * 0.1, 2)
+ where id::text like '91000000-0000-0000-0000-00000000001_';
+update facturas set total = base + iva where id::text like '91000000-0000-0000-0000-00000000001_';
+select validar_factura(id) from facturas where id::text like '91000000-0000-0000-0000-00000000001_';
+
+insert into inventarios (id, negocio_id, fecha, nombre, estado) values
+ ('93000000-0000-0000-0000-000000000001','b0000000-0000-0000-0000-000000000001','2026-09-30','Cierre de septiembre','cerrado'),
+ ('93000000-0000-0000-0000-000000000002','b0000000-0000-0000-0000-000000000001','2026-10-31','Cierre de octubre','cerrado'),
+ ('93000000-0000-0000-0000-000000000003','b0000000-0000-0000-0000-000000000001','2026-11-23','Cierre de noviembre','abierto');
+insert into inventario_lineas (inventario_id, producto_id, cantidad, precio)
+select i::uuid, p.id, c, pr from (values
+ ('93000000-0000-0000-0000-000000000001','Chocos limpios',14,11.90),('93000000-0000-0000-0000-000000000002','Chocos limpios',12,12.40),
+ ('93000000-0000-0000-0000-000000000001','Cazón en adobo',9,10.20),('93000000-0000-0000-0000-000000000002','Cazón en adobo',11,10.20),
+ ('93000000-0000-0000-0000-000000000001','Boquerón fresco',4,6.30),('93000000-0000-0000-0000-000000000002','Boquerón fresco',3,6.30),
+ ('93000000-0000-0000-0000-000000000001','Calamar nacional',8,14.90),('93000000-0000-0000-0000-000000000002','Calamar nacional',9,14.90),
+ ('93000000-0000-0000-0000-000000000001','Pijota',2,8.40),('93000000-0000-0000-0000-000000000002','Pijota',3,8.40),
+ ('93000000-0000-0000-0000-000000000001','Gamba blanca de Huelva',3,29.50),('93000000-0000-0000-0000-000000000002','Gamba blanca de Huelva',4,29.50),
+ ('93000000-0000-0000-0000-000000000001','Harina especial fritura',30,1.15),('93000000-0000-0000-0000-000000000002','Harina especial fritura',25,1.15),
+ ('93000000-0000-0000-0000-000000000001','Aceite de girasol alto oleico',125,1.98),('93000000-0000-0000-0000-000000000002','Aceite de girasol alto oleico',150,1.98),
+ ('93000000-0000-0000-0000-000000000001','Aceite de oliva virgen extra',10,6.40),('93000000-0000-0000-0000-000000000002','Aceite de oliva virgen extra',8,6.40),
+ ('93000000-0000-0000-0000-000000000001','Patata',25,0.92),('93000000-0000-0000-0000-000000000002','Patata',20,0.92),
+ ('93000000-0000-0000-0000-000000000001','Tomate pera',6,1.95),('93000000-0000-0000-0000-000000000002','Tomate pera',5,1.95),
+ ('93000000-0000-0000-0000-000000000001','Limón',4,1.40),('93000000-0000-0000-0000-000000000002','Limón',5,1.40),
+ ('93000000-0000-0000-0000-000000000003','Chocos limpios',10,null),('93000000-0000-0000-0000-000000000003','Cazón en adobo',8,null),
+ ('93000000-0000-0000-0000-000000000003','Aceite de girasol alto oleico',95,null)
+) as v(i,pn,c,pr) join productos p on p.nombre = v.pn and p.negocio_id = 'b0000000-0000-0000-0000-000000000001';
+-- El inventario abierto lleva todos los productos activos, contados o no
+insert into inventario_lineas (inventario_id, producto_id)
+select '93000000-0000-0000-0000-000000000003', id from productos where negocio_id = 'b0000000-0000-0000-0000-000000000001'
+on conflict do nothing;
+
+insert into mermas (negocio_id, fecha, producto_id, escandallo_id, cantidad, motivo, coste, notas)
+select 'b0000000-0000-0000-0000-000000000001', f::date,
+  (select id from productos where nombre = pn and negocio_id = 'b0000000-0000-0000-0000-000000000001'),
+  (select id from escandallos where nombre = en and negocio_id = 'b0000000-0000-0000-0000-000000000001'), c, m::motivo_merma, coste, n from (values
+ ('2026-10-04','Boquerón fresco',null,4.0,'caducidad',25.20,'Pedido del viernes sin vender el domingo'),
+ ('2026-10-11',null,'Chocos fritos',9,'sobreproduccion',33.40,'Rebozado de más un martes'),
+ ('2026-10-18','Aceite de girasol alto oleico',null,25,'deterioro',49.50,'Cambio de freidora antes de medir'),
+ ('2026-10-25',null,'Calamares fritos',4,'devolucion',16.00,'Mesa 12: aceite pasado'),
+ ('2026-10-26','Gamba blanca de Huelva',null,0.8,'deterioro',23.60,null),
+ ('2026-11-02',null,'Chocos fritos',6,'sobreproduccion',22.30,null),
+ ('2026-11-08','Tomate pera',null,3,'caducidad',5.85,null),
+ ('2026-11-15',null,'Cazón en adobo',3,'error_elaboracion',9.20,'Se quemó la tanda'),
+ ('2026-11-16','Boquerón fresco',null,2.5,'caducidad',17.00,null),
+ ('2026-11-22',null,'Boquerones fritos',5,'sobreproduccion',13.10,'Domingo: producción igual que sábado')
+) as v(f,pn,en,c,m,coste,n);
+
+-- =============================================================
+-- Estándares y formación
+-- =============================================================
+insert into plantillas (organizacion_id, tipo, area, nombre, descripcion, contenido)
+select o.id, x.tipo::tipo_plantilla, x.area::area_auditoria, x.nombre, x.descr, x.contenido::jsonb from organizaciones o, (values
+('checklist','cocina','Checklist de cierre de cocina','Lo que se revisa cada noche antes de apagar.',
+ '{"secciones":[{"titulo":"Producto","items":[{"id":"cc1","texto":"Género abierto etiquetado con fecha y tapado"},{"id":"cc2","texto":"Sobrantes registrados en la hoja de mermas"},{"id":"cc3","texto":"Pedido del día siguiente preparado según stock mínimo"}]},{"titulo":"Equipos","items":[{"id":"cc4","texto":"Aceite medido (compuestos polares) y anotado"},{"id":"cc5","texto":"Freidoras filtradas y tapadas"},{"id":"cc6","texto":"Temperaturas de cámaras anotadas"}]},{"titulo":"Limpieza","items":[{"id":"cc7","texto":"Superficies y campana limpias según plan"},{"id":"cc8","texto":"Basura y vidrio sacados"}]}]}'),
+('sop','cocina','Gestión del aceite de fritura','Cómo medir, filtrar y cambiar el aceite.',
+ '{"secciones":[{"titulo":"Cada servicio","items":[{"id":"ac1","texto":"Freír a 175-180 °C, nunca por encima de 185 °C"},{"id":"ac2","texto":"Sacudir la harina antes de freír para no ensuciar el aceite"}]},{"titulo":"Cada noche","items":[{"id":"ac3","texto":"Medir compuestos polares con el medidor y anotar en la hoja"},{"id":"ac4","texto":"Filtrar el aceite en frío"},{"id":"ac5","texto":"Cambiar el aceite al llegar al 24 % de compuestos polares"}]}]}'),
+('checklist','compras','Recepción de mercancía','Controles al recibir a un proveedor.',
+ '{"secciones":[{"titulo":"Al descargar","items":[{"id":"rm1","texto":"Comprobar peso o unidades contra el albarán"},{"id":"rm2","texto":"Temperatura de refrigerados ≤ 4 °C y congelados ≤ -18 °C"},{"id":"rm3","texto":"Aspecto, olor y calibre correctos"}]},{"titulo":"Antes de guardar","items":[{"id":"rm4","texto":"Anotar lote y fecha de caducidad"},{"id":"rm5","texto":"Colocar por FIFO: lo nuevo detrás"},{"id":"rm6","texto":"Incidencias apuntadas en el albarán y avisadas al proveedor"}]}]}'),
+('sop','sala','Servicio de desayuno buffet','Montaje, reposición y cierre del buffet.',
+ '{"secciones":[{"titulo":"Montaje (7:00)","items":[{"id":"db1","texto":"Encender estación caliente a las 7:00"},{"id":"db2","texto":"Carteles de alérgenos en cada bandeja"}]},{"titulo":"Servicio","items":[{"id":"db3","texto":"Reponer cuando la bandeja esté a un tercio"},{"id":"db4","texto":"Segundo punto de huevos y café abierto de 9:00 a 10:30"}]},{"titulo":"Cierre (11:00)","items":[{"id":"db5","texto":"Registrar sobrantes por producto"},{"id":"db6","texto":"Ajustar la producción del día siguiente según ocupación"}]}]}')
+) as x(tipo, area, nombre, descr, contenido);
+
+insert into estandares (proyecto_id, plantilla_id, tipo, titulo, area, contenido, estado, responsable_externo, fecha_implantacion)
+select v.p::uuid, pl.id, pl.tipo::text::tipo_estandar, pl.nombre, pl.area, pl.contenido, v.est::estado_estandar, v.resp, v.f::date
+from (values
+ ('c0000000-0000-0000-0000-000000000001','Gestión del aceite de fritura','implantado','Rocío Gil','2026-10-15'),
+ ('c0000000-0000-0000-0000-000000000001','Checklist de cierre de cocina','implantado','Rocío Gil','2026-10-31'),
+ ('c0000000-0000-0000-0000-000000000001','Recepción de mercancía','en_prueba','Manolo Sánchez',null),
+ ('c0000000-0000-0000-0000-000000000003','Servicio de desayuno buffet','implantado','Elena Torres','2026-06-15')
+) as v(p, nombre, est, resp, f) join plantillas pl on pl.nombre = v.nombre;
+
+insert into estandares (proyecto_id, tipo, titulo, area, contenido, estado, responsable_externo) values
+ ('c0000000-0000-0000-0000-000000000001','ficha','Plan de producción diario de fritos','cocina',
+  '{"secciones":[{"titulo":"Base por día (kg de pescado rebozado)","items":[{"id":"pp1","texto":"Lunes cerrado · martes 4 · miércoles 4 · jueves 5"},{"id":"pp2","texto":"Viernes 7 · sábado 9 · domingo 7 (80 % del sábado)"}]},{"titulo":"Ajustes","items":[{"id":"pp3","texto":"+1 kg por cada 10 reservas por encima de la media"},{"id":"pp4","texto":"Rebozar en dos tandas: antes del servicio y a las 21:30"}]}]}','en_prueba','Rocío Gil');
+
+insert into formaciones (proyecto_id, estandar_id, fecha, titulo, formador, duracion_h, contenido, asistentes, valoracion) values
+ ('c0000000-0000-0000-0000-000000000001',(select id from estandares where titulo='Gestión del aceite de fritura'),'2026-10-14','Control del aceite y fritura','Antonio Caramé',1.5,
+  'Uso del medidor de compuestos polares, temperatura de fritura y filtrado.',
+  '[{"nombre":"Rocío Gil","puesto":"Jefa de cocina","asistio":true},{"nombre":"Juanma Ruiz","puesto":"Cocinero","asistio":true},{"nombre":"Laura Díaz","puesto":"Ayudante","asistio":true},{"nombre":"Paco Mena","puesto":"Ayudante","asistio":false}]',8.5),
+ ('c0000000-0000-0000-0000-000000000001',(select id from estandares where titulo='Checklist de cierre de cocina'),'2026-10-30','Cierre de cocina y registro de mermas','Antonio Caramé',1,
+  'Cómo rellenar la checklist de cierre y la hoja de mermas.',
+  '[{"nombre":"Rocío Gil","puesto":"Jefa de cocina","asistio":true},{"nombre":"Juanma Ruiz","puesto":"Cocinero","asistio":true},{"nombre":"Laura Díaz","puesto":"Ayudante","asistio":false},{"nombre":"Paco Mena","puesto":"Ayudante","asistio":true}]',9),
+ ('c0000000-0000-0000-0000-000000000003',(select id from estandares where titulo='Servicio de desayuno buffet'),'2026-06-20','Servicio de desayuno','Antonio Caramé',2,null,
+  '[{"nombre":"Elena Torres","puesto":"Maître","asistio":true},{"nombre":"Sara Vela","puesto":"Camarera","asistio":true},{"nombre":"Hugo Prieto","puesto":"Camarero","asistio":true}]',8),
+ ('c0000000-0000-0000-0000-000000000003',null,'2026-11-18','Alérgenos: refresco para el turno de tarde','Antonio Caramé',1,null,
+  '[{"nombre":"Sara Vela","puesto":"Camarera","asistio":true},{"nombre":"Hugo Prieto","puesto":"Camarero","asistio":false}]',null);
