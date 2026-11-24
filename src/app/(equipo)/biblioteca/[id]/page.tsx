@@ -23,6 +23,7 @@ export default async function Plantilla({ params, searchParams }: { params: Prom
     <>
       <Cabecera eyebrow={`Biblioteca · ${NOMBRE[p.tipo]} · versión ${p.version}`} titulo={p.nombre}
         sub={p.tipo === "auditoria" ? "Puntos de control valorados de 0 a 4. Escribe criterios que se puedan comprobar en el local." : p.tipo === "sop" ? "Cada sección es una fase del proceso y cada línea un paso." : "Cada línea es algo que se marca hecho o no hecho."}>
+        <Button asChild variant="outline"><a href={`/imprimir/plantilla/${p.id}`} target="_blank" rel="noreferrer">Hoja en blanco para imprimir</a></Button>
         <Button asChild variant="outline"><Link href="/biblioteca">Volver</Link></Button>
       </Cabecera>
       <EditorPlantilla key={p.updated_at} id={p.id} tipo={p.tipo} inicial={{ nombre: p.nombre, area: p.area, descripcion: p.descripcion, contenido: contenidoAuditoria(p.contenido), activa: p.activa }} />

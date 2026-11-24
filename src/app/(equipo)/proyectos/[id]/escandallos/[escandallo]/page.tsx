@@ -18,7 +18,10 @@ export default async function EditarEscandallo({ params, searchParams }: { param
   return (
     <div>
       <Link href={volver} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />{esElab ? "Elaboraciones" : "Platos"}</Link>
-      <h2 className="mb-4 font-mono text-lg font-bold">{e?.nombre ?? (esElab ? "Nueva elaboración" : "Nuevo plato")}</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-mono text-lg font-bold">{e?.nombre ?? (esElab ? "Nueva elaboración" : "Nuevo plato")}</h2>
+        {e && <a href={`/imprimir/escandallo/${e.id}`} target="_blank" rel="noreferrer" className="rounded-sm border border-input bg-card px-2.5 py-1.5 text-[13px] font-medium hover:border-primary">Ficha técnica para imprimir</a>}
+      </div>
       <EditorEscandallo id={e?.id ?? null} negocioId={negocio.id} objetivo={objetivo} volver={volver} usadoEn={usadoEn}
         inicial={{ tipo: e?.tipo ?? (esElab ? "elaboracion" : "plato"), nombre: e?.nombre ?? "", categoria: e?.categoria ?? null, raciones: Number(e?.raciones ?? 1),
           rendimiento: e?.rendimiento == null ? null : Number(e.rendimiento), unidad_rendimiento: e?.unidad_rendimiento ?? (esElab ? "kg" : null),

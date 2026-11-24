@@ -109,6 +109,21 @@ test.describe("Recorridos principales", () => {
     }
   });
 
+  test("las hojas imprimibles cargan (auditoría, plantilla en blanco, ficha técnica)", async ({ page }) => {
+    await page.goto(`${P}/diagnostico`);
+    await page.locator('a', { hasText: "Auditoría de cocina" }).first().click();
+    await page.waitForURL(/diagnostico\/[0-9a-f-]{36}$/);
+    const informe = await page.locator('a:has-text("Informe PDF")').getAttribute("href");
+    await page.goto(informe!);
+    await expect(page.getByText("Organización y producción").first()).toBeVisible();
+    await page.goto("/biblioteca");
+    await page.locator("a", { hasText: "Auditoría de cocina" }).click();
+    await page.goto((await page.locator('a:has-text("Hoja en blanco")').getAttribute("href"))!);
+    await expect(page.getByText("Firma del auditor")).toBeVisible();
+    await page.goto("/imprimir/escandallo/92000000-0000-0000-0000-000000000007");
+    await expect(page.getByText("Alérgenos")).toBeVisible();
+  });
+
   test("el informe se genera en PDF", async ({ page }) => {
     await page.goto("/informe/94000000-0000-0000-0000-000000000001");
     await expect(page.getByText("Antes y después del proyecto")).toBeVisible();

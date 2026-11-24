@@ -38,7 +38,8 @@ export default async function Auditoria({ params }: { params: Promise<{ id: stri
             <h2 className="mt-1 font-mono text-lg font-bold">{a.titulo}</h2>
             <p className="text-sm text-muted-foreground">{AREAS[a.area]} · {fecha(a.fecha)}</p>
           </div>
-          <Puntuacion v={a.puntuacion == null ? null : Number(a.puntuacion)} />
+          <span className="flex items-center gap-2"><Puntuacion v={a.puntuacion == null ? null : Number(a.puntuacion)} />
+            <Button asChild variant="outline" size="sm"><a href={`/imprimir/auditoria/${a.id}`} target="_blank" rel="noreferrer">Informe PDF</a></Button></span>
         </div>
         <Checklist proyectoId={id} auditoriaId={a.id} contenido={contenido} respuestas={respuestas} fotos={urls} editable={editar} />
       </div>
