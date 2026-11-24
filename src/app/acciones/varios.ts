@@ -45,6 +45,12 @@ function filaEvento(fd: FormData): { ok: false; error: string } | { ok: true; fi
     lugar: txt(fd, "lugar"), notas: txt(fd, "notas"), todo_el_dia: todo,
   } };
 }
+/** Si falta la actualización 2 en Supabase, lo dice claramente en vez de un error técnico. */
+function errEvento(e: { message?: string; code?: string } | null): Res {
+  if (e && /todo_el_dia|tipo_evento|personal|otro/i.test(e.message ?? ""))
+    return { ok: false, error: "Falta instalar la actualización del calendario en Supabase (despliegue/actualizacion-02-agenda.sql). Pégala en SQL Editor y pulsa Run." };
+  return err(e);
+}
 const refrescarAgenda = () => { revalidatePath("/agenda"); revalidatePath("/panel"); };
 
 export async function crearEvento(fd: FormData): Promise<Res> {
@@ -52,14 +58,14 @@ export async function crearEvento(fd: FormData): Promise<Res> {
   const f = filaEvento(fd); if (!f.ok) return f;
   const { data, error } = await supabase.from("eventos").insert({ ...f.fila, organizacion_id: perfil.organizacion_id, creado_por: perfil.id }).select("id").single();
   refrescarAgenda();
-  return error ? err(error) : { ok: true, id: data.id };
+  return error ? errEvento(error) : { ok: true, id: data.id };
 }
 export async function actualizarEvento(id: string, fd: FormData): Promise<Res> {
   const { supabase } = await getSesion();
   const f = filaEvento(fd); if (!f.ok) return f;
   const { error } = await supabase.from("eventos").update(f.fila).eq("id", id);
   refrescarAgenda();
-  return err(error);
+  return errEvento(error);
 }
 /** Mueve un evento a otro día conservando la hora y la duración. */
 export async function moverEvento(id: string, dia: string): Promise<Res> {

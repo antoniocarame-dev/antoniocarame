@@ -179,7 +179,7 @@ function FormEvento({ evento, dia, proyectos, onCerrar, onOk }: {
         <div className="grid gap-3 sm:grid-cols-2">
           <Campo label="Qué" className="sm:col-span-2"><Input name="titulo" required autoFocus defaultValue={evento?.titulo} placeholder="Visita de seguimiento, dentista, cierre de mes…" /></Campo>
           <Campo label="Tipo"><Select name="tipo" defaultValue={evento?.tipo ?? "visita"} opciones={opciones(TIPOS_EVENTO)} /></Campo>
-          <Campo label="Proyecto"><Select name="proyecto_id" defaultValue={evento?.proyectoId ?? ""} vacio="Sin proyecto" opciones={proyectos} /></Campo>
+          <Campo label="Proyecto (opcional)"><Select name="proyecto_id" defaultValue={evento?.proyectoId ?? ""} vacio="Sin proyecto · cita libre" opciones={proyectos} /></Campo>
           <div className="flex flex-wrap gap-4 sm:col-span-2">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="todo_el_dia" checked={todo} onChange={(e) => setTodo(e.target.checked)} className="size-4" />Todo el día</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={varios} onChange={(e) => setVarios(e.target.checked)} className="size-4" />Varios días</label>
