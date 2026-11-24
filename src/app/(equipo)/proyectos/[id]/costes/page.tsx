@@ -8,6 +8,7 @@ import { DialogoForm } from "@/components/dialogo-form";
 import { BotonAccion } from "@/components/boton-accion";
 import { Kpi } from "@/components/piezas";
 import { SubPestanas } from "@/components/subpestanas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { LineaKpi } from "@/components/graficos";
 import { SubirFactura } from "@/components/costes/subir-factura";
@@ -89,7 +90,10 @@ export default async function Costes({ params, searchParams }: { params: Promise
         <Kpi label={`Subidas ≥ ${SUBIDA} %`} valor={subidas.length} tono={subidas.length ? "bad" : "ok"} ayuda="último precio frente al anterior" />
         <Kpi label="Ahorro posible" valor={eur(comparativa.reduce((s, c) => s + Math.max(0, c.ahorro), 0))} ayuda="al año, comprando al mejor precio" />
       </div>
-      <SubPestanas base={base} actual={v} items={[["facturas", "Facturas", pendientes.length], ["productos", "Productos y precios", subidas.length], ["comparativa", "Comparativa"], ["proveedores", "Proveedores"]]} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <SubPestanas base={base} actual={v} items={[["facturas", "Facturas", pendientes.length], ["productos", "Productos y precios", subidas.length], ["comparativa", "Comparativa"], ["proveedores", "Proveedores"]]} />
+        <BotonExcel href={`/exportar/compras?proyecto=${id}`} />
+      </div>
 
       {v === "facturas" && (
         <div className="grid gap-4">

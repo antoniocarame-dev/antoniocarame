@@ -38,6 +38,21 @@ Los productos, facturas y escandallos son de cada negocio; los proveedores son t
 - Los documentos y fotos van a un bucket privado (`documentos`) con enlaces de descarga temporales.
 - Las tareas y acciones se asignan a ti o a un contacto del cliente por nombre. El campo «Incluir en los informes» marca qué hallazgos, KPIs, acciones y actas saldrán en los informes (fase 3).
 
+## Exportar a Excel
+
+Botón «Excel» en Ventas y resultados (cuenta de resultados y ventas diarias), Costes y compras (productos, histórico de precios, facturas y líneas), Escandallos (platos y detalle por ingrediente), Inventario y mermas, Plan de mejora (KPIs, hallazgos, acciones, tareas) y Consultora (horas, presupuestos, conceptos, facturas emitidas). Las hojas llevan formato de euros, porcentajes y fechas en español, filtros y la cabecera fija. Las descargas respetan la misma seguridad que la app.
+
+## Pruebas automáticas
+
+Con Supabase local recién cargado y la app en marcha:
+
+```bash
+npm run db:reset
+npm run test:e2e
+```
+
+Recorren todas las pantallas y los flujos clave: acceso y seguridad, hallazgo → acción, validar un albarán, escandallo con elaboración, mermas, presupuesto → proyecto, exportaciones a Excel e informe en PDF.
+
 ## Lectura automática de facturas
 
 Con `ANTHROPIC_API_KEY` configurada, al subir una factura o albarán se envía a Claude (modelo `claude-opus-5-5`, salida estructurada) y vuelve con proveedor, número, fecha, bases, IVA y líneas. Si el modelo rechaza la petición, la API la reintenta automáticamente con otro modelo (fallback del servidor). Nada cuenta hasta que lo validas en la pantalla de revisión: al validar, cada línea enlazada a un producto registra su precio y los escandallos se recalculan.

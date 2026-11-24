@@ -55,7 +55,7 @@ export default async function Diagnostico({ params }: { params: Promise<{ id: st
         <span className="text-xs text-muted-foreground">{h.area ? AREAS[h.area] : ""}{h.coste_estimado ? ` · ${eur(Number(h.coste_estimado))}/mes` : ""}{!h.visible_cliente ? " · fuera de informes" : ""}</span>
         {editar && (
           <span className="flex gap-1">
-            <BotonAccion size="sm" variant="ghost" title="Crear acción de mejora" accion={async () => { "use server"; return A.hallazgoAAccion(id, h.id); }}>Acción<ArrowRight /></BotonAccion>
+            <BotonAccion size="sm" variant="ghost" title="Crear acción de mejora" ok="Acción creada en el plan" accion={async () => { "use server"; return A.hallazgoAAccion(id, h.id); }}>Acción<ArrowRight /></BotonAccion>
             <BotonAccion size="icon" variant="ghost" confirmar="¿Borrar?" title="Borrar" accion={async () => { "use server"; return A.borrarHallazgo(id, h.id); }}><Trash2 /></BotonAccion>
           </span>
         )}

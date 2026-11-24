@@ -10,6 +10,7 @@ import { DialogoForm } from "@/components/dialogo-form";
 import { BotonAccion } from "@/components/boton-accion";
 import { Kpi } from "@/components/piezas";
 import { SubPestanas } from "@/components/subpestanas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { requiereEquipo } from "@/lib/sesion";
 import { baseDe, COSTE_KM, ESTADOS_PRESUPUESTO, TIPOS_HORA, totalFactura } from "@/lib/consultora";
@@ -69,6 +70,7 @@ export default async function Consultora({ searchParams }: { searchParams: Promi
   return (
     <>
       <Cabecera eyebrow="Tu negocio" titulo="Consultora" sub="Horas, propuestas, facturación y lo que te deja cada proyecto. La factura legal se emite en tu programa de facturación; aquí se registra para seguir cobros y márgenes.">
+        <BotonExcel href="/exportar/consultora" />
         <DialogoForm titulo="Registrar horas" trigger={<Button variant="outline"><Plus />Horas</Button>} action={async (fd) => { "use server"; return A.registrarHoras(fd); }}><FormHoras proyectos={opcionesProy} /></DialogoForm>
         <DialogoForm titulo="Nuevo presupuesto" trigger={<Button><Plus />Presupuesto</Button>} boton="Crear y editar"
           action={async (fd) => { "use server"; const r = await A.crearPresupuesto(fd); if (r.ok) redirect(`/consultora/presupuestos/${r.id}`); return r; }}>

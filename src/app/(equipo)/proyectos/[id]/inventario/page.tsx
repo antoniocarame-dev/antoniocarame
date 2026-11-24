@@ -9,6 +9,7 @@ import { FormAccion } from "@/components/form-accion";
 import { BotonAccion } from "@/components/boton-accion";
 import { Kpi } from "@/components/piezas";
 import { SubPestanas } from "@/components/subpestanas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { cargarEscandallos } from "@/lib/negocio";
 import { consumoTeorico, MOTIVOS_MERMA } from "@/lib/costes";
@@ -78,7 +79,10 @@ export default async function InventarioYMermas({ params, searchParams }: { para
         <Kpi label="Último inventario" valor={cerrados.at(-1) ? eur(cerrados.at(-1)!.inventario_lineas.reduce((s, l) => s + Number(l.cantidad ?? 0) * Number(l.precio ?? 0), 0)) : "—"} ayuda={cerrados.at(-1) ? `${cerrados.at(-1)!.nombre} · ${fecha(cerrados.at(-1)!.fecha)}` : "sin inventarios cerrados"} />
         <Kpi label="Desviación de consumo" valor={consumo?.meses.length ? eur(valorReal - valorTeo) : "—"} tono={consumo?.meses.length && valorReal - valorTeo > 0 ? "bad" : undefined} ayuda={consumo?.meses.length ? "real menos teórico" : "hacen falta 2 inventarios y ventas"} />
       </div>
-      <SubPestanas base={base} actual={v} items={[["mermas", "Mermas"], ["inventarios", "Inventarios"], ["consumo", "Consumo real vs. teórico"]]} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <SubPestanas base={base} actual={v} items={[["mermas", "Mermas"], ["inventarios", "Inventarios"], ["consumo", "Consumo real vs. teórico"]]} />
+        <BotonExcel href={`/exportar/mermas?proyecto=${id}`} />
+      </div>
 
       {v === "mermas" && (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">

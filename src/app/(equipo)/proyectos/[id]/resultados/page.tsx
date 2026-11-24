@@ -7,6 +7,7 @@ import { DialogoForm } from "@/components/dialogo-form";
 import { BotonAccion } from "@/components/boton-accion";
 import { Kpi } from "@/components/piezas";
 import { SubPestanas } from "@/components/subpestanas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { LineaKpi, VentasMensuales } from "@/components/graficos";
 import { ImportarVentas, ImportarVentasPlato } from "@/components/resultados/importar";
@@ -52,7 +53,10 @@ export default async function Resultados({ params, searchParams }: { params: Pro
         <Kpi label="EBITDA" valor={ultimo?.ebitda != null ? eur(ultimo.ebitda) : "—"} tono={ultimo?.ebitda != null ? (ultimo.ebitda >= 0 ? "ok" : "bad") : undefined} ayuda={fmt("ebitda_pct", ultimo?.kpi.ebitda_pct ?? null) + " sobre ventas"} />
         <Kpi label="Mejora de EBITDA" valor={A1 && D1 ? eur(D1.ebitdaMes - A1.ebitdaMes) : "—"} tono={A1 && D1 ? (D1.ebitdaMes >= A1.ebitdaMes ? "ok" : "bad") : undefined} ayuda={A1 && D1 ? "al mes, después frente a antes" : "faltan meses de antes del proyecto"} />
       </div>
-      <SubPestanas base={base} actual={v} items={[["cuenta", "Cuenta de resultados"], ["kpis", "KPIs del sector"], ["impacto", "Antes y después"], ["ventas", "Importar ventas"]]} />
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <SubPestanas base={base} actual={v} items={[["cuenta", "Cuenta de resultados"], ["kpis", "KPIs del sector"], ["impacto", "Antes y después"], ["ventas", "Importar ventas"]]} />
+        <BotonExcel href={`/exportar/resultados?proyecto=${id}`} />
+      </div>
 
       {v === "cuenta" && (meses.length ? (
         <div className="grid gap-4">

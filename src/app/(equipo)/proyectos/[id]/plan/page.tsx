@@ -6,6 +6,7 @@ import { Campo, Input, Select, Textarea } from "@/components/ui/form";
 import { DialogoForm } from "@/components/dialogo-form";
 import { BotonAccion, SelectAccion } from "@/components/boton-accion";
 import { Prioridad } from "@/components/piezas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Comentarios } from "@/components/comentarios";
 import { LineaKpi } from "@/components/graficos";
 import { Vacio } from "@/components/ui/vacio";
@@ -74,6 +75,7 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div><h2 className="font-mono text-base font-bold">Indicadores</h2><p className="text-sm text-muted-foreground">Cada acción del plan debería mover uno de estos números.</p></div>
+          <span className="ml-auto"><BotonExcel href={`/exportar/plan?proyecto=${id}`}>Plan en Excel</BotonExcel></span>
           {editar && (
             <DialogoForm titulo="Nuevo KPI" descripcion={`Habituales: ${PRESETS.map((p) => p[1]).join(", ")}.`} trigger={<Button size="sm"><Plus />KPI</Button>}
               action={async (fd) => { "use server"; return A.guardarKpi(id, null, fd); }}>

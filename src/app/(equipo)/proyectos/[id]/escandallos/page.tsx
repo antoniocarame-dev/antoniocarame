@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Kpi } from "@/components/piezas";
 import { SubPestanas } from "@/components/subpestanas";
+import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { MatrizMenu } from "@/components/graficos";
 import { VentasForm } from "@/components/escandallos/ventas-form";
@@ -45,6 +46,7 @@ export default async function Escandallos({ params, searchParams }: { params: Pr
       <div className="flex flex-wrap items-start justify-between gap-2">
         <SubPestanas base={base} actual={v} items={[["platos", "Platos", platos.length], ["elaboraciones", "Elaboraciones", elaboraciones.length], ["ingenieria", "Ingeniería de menú"]]} />
         <div className="flex gap-2">
+          <BotonExcel href={`/exportar/escandallos?proyecto=${id}`} />
           <Button asChild variant="outline" size="sm"><Link href={`${base}/nuevo?tipo=elaboracion`}><Plus />Elaboración</Link></Button>
           <Button asChild size="sm"><Link href={`${base}/nuevo`}><Plus />Plato</Link></Button>
         </div>

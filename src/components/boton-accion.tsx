@@ -4,24 +4,30 @@ import type { Res } from "@/app/acciones/comun";
 import { Button } from "@/components/ui/button";
 
 /** Botón que ejecuta una acción; con `confirmar` pide un segundo clic antes de ejecutarla. */
-export function BotonAccion({ accion, children, confirmar, variant = "outline", size = "sm", className, title }: {
-  accion: () => Promise<Res>; children: React.ReactNode; confirmar?: string;
+export function BotonAccion({ accion, children, confirmar, variant = "outline", size = "sm", className, title, ok }: {
+  accion: () => Promise<Res>; children: React.ReactNode; confirmar?: string; ok?: string;
   variant?: "default" | "outline" | "ghost" | "destructive"; size?: "default" | "sm" | "icon"; className?: string; title?: string;
 }) {
   const [pend, start] = useTransition();
   const [armado, setArmado] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hecho, setHecho] = useState(false);
   return (
     <span className="inline-flex flex-col items-start">
       <Button type="button" variant={armado ? "destructive" : variant} size={size} className={className} disabled={pend} title={title}
         onClick={() => {
           if (confirmar && !armado) { setArmado(true); setTimeout(() => setArmado(false), 4000); return; }
           setArmado(false);
-          start(async () => { const r = await accion(); setError(r.ok ? null : r.error ?? "Error"); });
+          start(async () => {
+            const r = await accion();
+            setError(r.ok ? null : r.error ?? "Error");
+            if (r.ok && ok) { setHecho(true); setTimeout(() => setHecho(false), 3000); }
+          });
         }}>
         {armado ? confirmar : children}
       </Button>
       {error && <span role="alert" className="mt-1 text-xs text-bad">{error}</span>}
+      {hecho && ok && <span role="status" className="mt-1 text-xs text-ok">{ok}</span>}
     </span>
   );
 }
