@@ -13,10 +13,10 @@ export const getSesion = cache(async () => {
   return { supabase, user, perfil, esAdmin: perfil.rol === "admin", esEquipo: equipo };
 });
 
-/** Para páginas del área de la consultora: los clientes van a su portal. */
+/** Uso personal: solo entra el equipo de la consultora. */
 export async function requiereEquipo() {
   const s = await getSesion();
-  if (!s.esEquipo) redirect("/portal");
+  if (!s.esEquipo) redirect("/login?error=perfil");
   return s;
 }
 

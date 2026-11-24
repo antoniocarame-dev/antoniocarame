@@ -55,7 +55,7 @@ export default async function Auditoria({ params }: { params: Promise<{ id: stri
               <div className="grid gap-3">
                 <Campo label="Estado"><Select name="estado" defaultValue={a.estado} opciones={[["borrador", "En curso"], ["completada", "Completada"]]} /></Campo>
                 <Campo label="Conclusiones"><Textarea name="notas" defaultValue={a.notas ?? ""} /></Campo>
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="visible_cliente" defaultChecked={a.visible_cliente} className="size-4" />Visible para el cliente</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="visible_cliente" defaultChecked={a.visible_cliente} className="size-4" />Incluir en los informes</label>
                 <Button type="submit">Guardar</Button>
               </div>
             </FormAccion>

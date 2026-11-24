@@ -99,18 +99,3 @@ export async function toggleHito(proyecto_id: string, id: string, completado: bo
   return err(error);
 }
 
-// ---------- Miembros ----------
-export async function anadirMiembro(proyecto_id: string, fd: FormData): Promise<Res> {
-  const { supabase } = await getSesion();
-  const usuario_id = txt(fd, "usuario_id");
-  if (!usuario_id) return { ok: false, error: "Elige a la persona." };
-  const { error } = await supabase.from("proyecto_miembros").upsert({ proyecto_id, usuario_id, rol: (txt(fd, "rol") ?? "colaborador") as E["rol_proyecto"] });
-  revalidatePath(`/proyectos/${proyecto_id}`);
-  return err(error);
-}
-export async function quitarMiembro(proyecto_id: string, usuario_id: string): Promise<Res> {
-  const { supabase } = await getSesion();
-  const { error } = await supabase.from("proyecto_miembros").delete().eq("proyecto_id", proyecto_id).eq("usuario_id", usuario_id);
-  revalidatePath(`/proyectos/${proyecto_id}`);
-  return err(error);
-}

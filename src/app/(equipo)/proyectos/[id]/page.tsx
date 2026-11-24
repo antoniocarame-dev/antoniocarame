@@ -9,23 +9,24 @@ import { BotonAccion, SelectAccion } from "@/components/boton-accion";
 import { Kpi, Progreso } from "@/components/piezas";
 import { getSesion, puedeEditarProyecto } from "@/lib/sesion";
 import * as A from "@/app/acciones/proyectos";
-import { ESTADOS_PROYECTO, ROLES_PROYECTO, SALUD, TIPOS_PROYECTO, eur, estadoKpi, fecha, numero, opciones, valorKpi } from "@/lib/utils";
+import { ESTADOS_PROYECTO, SALUD, TIPOS_PROYECTO, eur, estadoKpi, fecha, numero, opciones, valorKpi } from "@/lib/utils";
 
 export default async function Resumen({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, esAdmin } = await getSesion();
   const editar = await puedeEditarProyecto(id);
-  const [{ data: p }, { data: fases }, { data: hitos }, { data: fin }, { data: miembros }, { data: tareas }, { data: kpis }, { data: equipo }] = await Promise.all([
+  const [{ data: p }, { data: fases }, { data: hitos }, { data: fin }, , { data: tareas }, { data: kpis }, { data: equipo }] = await Promise.all([
     supabase.from("proyectos").select("*").eq("id", id).single(),
     supabase.from("fases").select("*").eq("proyecto_id", id).order("orden"),
     supabase.from("hitos").select("*").eq("proyecto_id", id).order("fecha"),
     supabase.from("proyecto_finanzas").select("*").eq("proyecto_id", id).maybeSingle(),
-    supabase.from("proyecto_miembros").select("rol, usuario_id, perfiles(nombre, email)").eq("proyecto_id", id),
+    Promise.resolve({ data: null }),
     supabase.from("tareas").select("estado, vence").eq("proyecto_id", id),
     supabase.from("kpis").select("*, kpi_valores(periodo, valor)").eq("proyecto_id", id),
     supabase.from("perfiles").select("id, nombre, rol").order("nombre"),
   ]);
   if (!p) return null;
+  const { data: contactos } = await supabase.from("contactos").select("*").eq("negocio_id", p.negocio_id).order("principal", { ascending: false });
   const hechas = tareas?.filter((t) => t.estado === "hecha").length ?? 0;
   const total = tareas?.length ?? 0;
   const pid = id;
@@ -168,23 +169,12 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Equipo del proyecto</CardTitle>
-            {esAdmin && (
-              <DialogoForm titulo="Añadir persona al proyecto" descripcion="Para dar acceso a alguien nuevo, invítalo antes desde Ajustes."
-                trigger={<Button variant="outline" size="sm"><Plus />Añadir</Button>} action={async (fd) => { "use server"; return A.anadirMiembro(pid, fd); }}>
-                <Campo label="Persona"><Select name="usuario_id" vacio="Elige" opciones={(equipo ?? []).map((u) => [u.id, u.nombre])} /></Campo>
-                <Campo label="Rol en el proyecto"><Select name="rol" opciones={opciones(ROLES_PROYECTO)} /></Campo>
-              </DialogoForm>
-            )}
-          </CardHeader>
+          <CardHeader><CardTitle>Contactos del cliente</CardTitle><Link href={`/negocios/${p.negocio_id}`} className="text-sm text-primary-ink hover:underline">Ficha del negocio</Link></CardHeader>
           <ul className="divide-y text-sm">
-            {miembros?.map((m) => (
-              <li key={m.usuario_id} className="flex items-center justify-between gap-2 py-2">
-                <span><span className="font-medium">{m.perfiles?.nombre}</span><span className="block text-xs text-muted-foreground">{ROLES_PROYECTO[m.rol]}</span></span>
-                {esAdmin && <BotonAccion size="icon" variant="ghost" confirmar="¿Quitar?" title="Quitar del proyecto" accion={async () => { "use server"; return A.quitarMiembro(pid, m.usuario_id); }}><Trash2 /></BotonAccion>}
-              </li>
+            {contactos?.map((c) => (
+              <li key={c.id} className="py-2"><p className="font-medium">{c.nombre}{c.cargo ? <span className="font-normal text-muted-foreground"> · {c.cargo}</span> : null}</p><p className="select-all break-all text-xs text-muted-foreground">{[c.email, c.telefono].filter(Boolean).join(" · ")}</p></li>
             ))}
+            {!contactos?.length && <li className="py-2 text-muted-foreground">Añade contactos en la ficha del negocio.</li>}
           </ul>
         </Card>
       </div>

@@ -25,10 +25,9 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
             Contraseña
             <input name="password" type="password" required autoComplete="current-password" className="h-10 rounded-sm border border-input bg-card px-3 text-foreground" />
           </label>
-          {error && <p role="alert" className="mb-3 rounded-sm bg-bad-soft px-3 py-2 text-sm text-bad">{error === "perfil" ? "Tu usuario no tiene perfil. Pide acceso a la consultora." : "Correo o contraseña incorrectos."}</p>}
+          {error && <p role="alert" className="mb-3 rounded-sm bg-bad-soft px-3 py-2 text-sm text-bad">{error === "perfil" ? "Este usuario no tiene acceso a la plataforma." : "Correo o contraseña incorrectos."}</p>}
           <button className="h-10 w-full rounded-sm bg-primary font-medium text-primary-foreground hover:brightness-110">Entrar</button>
         </form>
-        <p className="mt-6 text-center text-xs text-sidebar-muted">¿Sin acceso? Te lo da tu consultor por invitación.</p>
       </div>
     </main>
   );

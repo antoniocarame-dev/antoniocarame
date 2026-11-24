@@ -34,7 +34,6 @@ export async function registrarDocumento(d: Subida): Promise<Res> {
 function revalidar(d: { proyecto_id?: string | null; negocio_id?: string | null }) {
   if (d.proyecto_id) revalidatePath(`/proyectos/${d.proyecto_id}/documentos`);
   if (d.negocio_id) revalidatePath(`/negocios/${d.negocio_id}`);
-  revalidatePath("/portal", "layout");
 }
 
 export async function enlaceDescarga(storage_path: string): Promise<{ url?: string; error?: string }> {

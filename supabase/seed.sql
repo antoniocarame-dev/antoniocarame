@@ -1,10 +1,6 @@
 -- =============================================================
 -- Datos de ejemplo · 3 negocios ficticios de la provincia de Cádiz
--- Usuarios (contraseña para todos: demo1234)
---   admin@demo.test      Antonio · admin
---   lucia@demo.test      Lucía   · colaboradora
---   varadero@demo.test   Manolo  · cliente (Freiduría El Varadero)
---   marisma@demo.test    Carmen  · cliente (Restaurante Marisma)
+-- Usuario de prueba: admin@demo.test / demo1234 (uso personal: un solo usuario)
 -- =============================================================
 
 create or replace function pg_temp.crear_usuario(uid uuid, mail text, nombre text, rol text) returns void
@@ -23,13 +19,9 @@ begin
 end $$;
 
 select pg_temp.crear_usuario('a0000000-0000-0000-0000-000000000001', 'admin@demo.test',    'Antonio Caramé', 'admin');
-select pg_temp.crear_usuario('a0000000-0000-0000-0000-000000000002', 'lucia@demo.test',    'Lucía Pérez',    'colaborador');
-select pg_temp.crear_usuario('a0000000-0000-0000-0000-000000000003', 'varadero@demo.test', 'Manolo Sánchez', 'cliente');
-select pg_temp.crear_usuario('a0000000-0000-0000-0000-000000000004', 'marisma@demo.test',  'Carmen Ruiz',    'cliente');
 
 update organizaciones set nombre = 'AC Soluciones Gastronómicas Integrales';
 update perfiles set tarifa_hora = 65 where id = 'a0000000-0000-0000-0000-000000000001';
-update perfiles set tarifa_hora = 40 where id = 'a0000000-0000-0000-0000-000000000002';
 
 -- ---------- Plantillas de auditoría (escala 0-4 por ítem) ----------
 insert into plantillas (organizacion_id, tipo, area, nombre, descripcion, contenido)
@@ -140,7 +132,7 @@ from organizaciones o, (values
  ('c0000000-0000-0000-0000-000000000002','b0000000-0000-0000-0000-000000000002','P-2026-11','Rediseño de carta e ingeniería de menú','rediseno_carta','diagnostico','verde','a0000000-0000-0000-0000-000000000001','2026-11-04','2027-03-15',
   'Pasar de 46 a 28 referencias. Food cost de carta por debajo del 30 %. Subir el ticket medio a 42 €.',
   'Auditoría de carta y cocina, análisis de ventas por plato, nueva carta con escandallos y formación de sala en venta sugerida.'),
- ('c0000000-0000-0000-0000-000000000003','b0000000-0000-0000-0000-000000000003','P-2026-03','Estandarización de sala y formación de equipo','formacion','seguimiento','verde','a0000000-0000-0000-0000-000000000002','2026-03-02','2026-12-20',
+ ('c0000000-0000-0000-0000-000000000003','b0000000-0000-0000-0000-000000000003','P-2026-03','Estandarización de sala y formación de equipo','formacion','seguimiento','verde','a0000000-0000-0000-0000-000000000001','2026-03-02','2026-12-20',
   'Procedimientos de sala escritos para desayuno y restaurante. Valoración media en reseñas ≥ 4,4. Rotación de personal por debajo del 30 %.',
   'SOPs de apertura, servicio y cierre, manual de bienvenida, 6 sesiones de formación y seguimiento mensual.'),
  ('c0000000-0000-0000-0000-000000000004','b0000000-0000-0000-0000-000000000001','P-2026-02','Puesta en marcha de terraza de verano','apertura','cerrado','verde','a0000000-0000-0000-0000-000000000001','2026-02-15','2026-05-31',
@@ -154,16 +146,8 @@ insert into proyecto_finanzas (proyecto_id, horas_presupuestadas, horas_consumid
  ('c0000000-0000-0000-0000-000000000003', 70, 61, 4200, 60),
  ('c0000000-0000-0000-0000-000000000004', 30, 34, 1800, 60);
 
-insert into proyecto_miembros (proyecto_id, usuario_id, rol) values
- ('c0000000-0000-0000-0000-000000000001','a0000000-0000-0000-0000-000000000001','consultor'),
- ('c0000000-0000-0000-0000-000000000001','a0000000-0000-0000-0000-000000000002','colaborador'),
- ('c0000000-0000-0000-0000-000000000001','a0000000-0000-0000-0000-000000000003','cliente'),
- ('c0000000-0000-0000-0000-000000000004','a0000000-0000-0000-0000-000000000001','consultor'),
- ('c0000000-0000-0000-0000-000000000004','a0000000-0000-0000-0000-000000000003','cliente'),
- ('c0000000-0000-0000-0000-000000000002','a0000000-0000-0000-0000-000000000001','consultor'),
- ('c0000000-0000-0000-0000-000000000002','a0000000-0000-0000-0000-000000000004','cliente'),
- ('c0000000-0000-0000-0000-000000000003','a0000000-0000-0000-0000-000000000002','colaborador'),
- ('c0000000-0000-0000-0000-000000000003','a0000000-0000-0000-0000-000000000001','consultor');
+insert into proyecto_miembros (proyecto_id, usuario_id, rol)
+select id, 'a0000000-0000-0000-0000-000000000001', 'consultor' from proyectos;
 
 -- ---------- Fases e hitos ----------
 insert into fases (proyecto_id, nombre, orden, fecha_inicio, fecha_fin, estado) values
@@ -205,17 +189,17 @@ end $$;
 
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','cocina','2026-07-08',2,'a0000000-0000-0000-0000-000000000001');
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','compras','2026-07-10',1,'a0000000-0000-0000-0000-000000000001');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','almacen','2026-07-10',2,'a0000000-0000-0000-0000-000000000002');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','sala','2026-07-12',3,'a0000000-0000-0000-0000-000000000002');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','almacen','2026-07-10',2,'a0000000-0000-0000-0000-000000000001');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','sala','2026-07-12',3,'a0000000-0000-0000-0000-000000000001');
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','carta','2026-07-15',2,'a0000000-0000-0000-0000-000000000001');
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','equipo','2026-07-15',2,'a0000000-0000-0000-0000-000000000001');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','appcc','2026-07-17',3,'a0000000-0000-0000-0000-000000000002');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000001','appcc','2026-07-17',3,'a0000000-0000-0000-0000-000000000001');
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000002','carta','2026-11-12',1,'a0000000-0000-0000-0000-000000000001');
 select pg_temp.auditar('c0000000-0000-0000-0000-000000000002','cocina','2026-11-13',2,'a0000000-0000-0000-0000-000000000001');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','sala','2026-03-10',2,'a0000000-0000-0000-0000-000000000002');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','experiencia_cliente','2026-03-11',2,'a0000000-0000-0000-0000-000000000002');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','equipo','2026-03-12',1,'a0000000-0000-0000-0000-000000000002');
-select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','sala','2026-10-20',3,'a0000000-0000-0000-0000-000000000002');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','sala','2026-03-10',2,'a0000000-0000-0000-0000-000000000001');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','experiencia_cliente','2026-03-11',2,'a0000000-0000-0000-0000-000000000001');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','equipo','2026-03-12',1,'a0000000-0000-0000-0000-000000000001');
+select pg_temp.auditar('c0000000-0000-0000-0000-000000000003','sala','2026-10-20',3,'a0000000-0000-0000-0000-000000000001');
 
 -- ---------- Hallazgos ----------
 insert into hallazgos (id, proyecto_id, tipo, muda, dafo, area, titulo, descripcion, impacto, esfuerzo, coste_estimado, creado_por) values
@@ -224,11 +208,11 @@ insert into hallazgos (id, proyecto_id, tipo, muda, dafo, area, titulo, descripc
  ('d0000000-0000-0000-0000-000000000002','c0000000-0000-0000-0000-000000000001','muda','defectos_mermas',null,'cocina','Aceite de fritura cambiado sin criterio',
   'Se cambia cada 2 días “por si acaso”. Con medidor de compuestos polares se podría alargar a 4-5 días.',4,1,380,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000003','c0000000-0000-0000-0000-000000000001','muda','esperas',null,'sala','Cuello de botella en el pase de 21:30 a 22:30',
-  'Los fritos salen tarde porque una sola freidora atiende sala y para llevar. Mesas esperando 18-22 minutos.',4,3,null,'a0000000-0000-0000-0000-000000000002'),
+  'Los fritos salen tarde porque una sola freidora atiende sala y para llevar. Mesas esperando 18-22 minutos.',4,3,null,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000004','c0000000-0000-0000-0000-000000000001','muda','inventario',null,'almacen','Exceso de stock en bebidas y aceite',
-  'Hay más de 40 días de cobertura en refrescos y 120 litros de aceite almacenados. Dinero parado.',3,1,null,'a0000000-0000-0000-0000-000000000002'),
+  'Hay más de 40 días de cobertura en refrescos y 120 litros de aceite almacenados. Dinero parado.',3,1,null,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000005','c0000000-0000-0000-0000-000000000001','muda','movimientos',null,'cocina','La cámara de pescado está lejos de la freidora',
-  'El cocinero de fritura recorre unos 15 metros en cada reposición durante el servicio.',2,3,null,'a0000000-0000-0000-0000-000000000002'),
+  'El cocinero de fritura recorre unos 15 metros en cada reposición durante el servicio.',2,3,null,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000006','c0000000-0000-0000-0000-000000000001','muda','sobreprocesos',null,'sala','Comandas apuntadas en papel y luego en el TPV',
   'Doble trabajo y errores: 3-4 platos mal comandados por servicio.',3,2,null,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000007','c0000000-0000-0000-0000-000000000001','muda','transporte',null,'compras','Compras al cash dos veces por semana',
@@ -240,7 +224,7 @@ insert into hallazgos (id, proyecto_id, tipo, muda, dafo, area, titulo, descripc
  ('d0000000-0000-0000-0000-000000000012','c0000000-0000-0000-0000-000000000002','muda','sobreproduccion',null,'carta','46 referencias en carta con 9 platos que no llegan a 5 ventas al mes',
   'Obligan a mantener género que se pierde.',5,3,900,'a0000000-0000-0000-0000-000000000001'),
  ('d0000000-0000-0000-0000-000000000013','c0000000-0000-0000-0000-000000000002','dafo',null,'fortaleza',null,'Producto local de calidad y buena relación con proveedores de lonja',null,4,1,null,'a0000000-0000-0000-0000-000000000001'),
- ('d0000000-0000-0000-0000-000000000014','c0000000-0000-0000-0000-000000000003','muda','esperas',null,'sala','Cola en el buffet de desayuno entre 9:00 y 10:00',null,4,2,null,'a0000000-0000-0000-0000-000000000002');
+ ('d0000000-0000-0000-0000-000000000014','c0000000-0000-0000-0000-000000000003','muda','esperas',null,'sala','Cola en el buffet de desayuno entre 9:00 y 10:00',null,4,2,null,'a0000000-0000-0000-0000-000000000001');
 
 -- ---------- KPIs y valores mensuales ----------
 insert into kpis (id, proyecto_id, codigo, nombre, unidad, valor_base, objetivo, sentido) values
@@ -278,36 +262,36 @@ insert into acciones (id, proyecto_id, hallazgo_id, kpi_id, titulo, descripcion,
   'Plan de producción diario según reservas y día de la semana','Tabla de producción por día con cantidades de rebozado y descarte medido.','verificar','a0000000-0000-0000-0000-000000000001','2026-11-30','alta',
   'Desde octubre las mermas de pescado han bajado un 40 %. Falta consolidar los domingos.'),
  ('f0000000-0000-0000-0000-000000000002','c0000000-0000-0000-0000-000000000001','d0000000-0000-0000-0000-000000000002','e0000000-0000-0000-0000-000000000001',
-  'Control del aceite con medidor de compuestos polares','Medición diaria y cambio al llegar al 24 % de compuestos polares.','actuar','a0000000-0000-0000-0000-000000000003','2026-10-31','media',
+  'Control del aceite con medidor de compuestos polares','Medición diaria y cambio al llegar al 24 % de compuestos polares.','actuar',null,'2026-10-31','media',
   'Cambio cada 4,5 días de media. Ahorro de unos 320 €/mes. Se estandariza en el checklist de cierre.'),
  ('f0000000-0000-0000-0000-000000000003','c0000000-0000-0000-0000-000000000001','d0000000-0000-0000-0000-000000000003','e0000000-0000-0000-0000-000000000003',
-  'Freidora dedicada para pedidos para llevar','Separar flujos de sala y para llevar en hora punta.','hacer','a0000000-0000-0000-0000-000000000003','2026-12-15','alta',null),
+  'Freidora dedicada para pedidos para llevar','Separar flujos de sala y para llevar en hora punta.','hacer',null,'2026-12-15','alta',null),
  ('f0000000-0000-0000-0000-000000000004','c0000000-0000-0000-0000-000000000001','d0000000-0000-0000-0000-000000000006',null,
-  'Comandero digital en sala','Eliminar la comanda en papel.','planificar','a0000000-0000-0000-0000-000000000002','2027-01-15','media',null),
+  'Comandero digital en sala','Eliminar la comanda en papel.','planificar','a0000000-0000-0000-0000-000000000001','2027-01-15','media',null),
  ('f0000000-0000-0000-0000-000000000005','c0000000-0000-0000-0000-000000000001','d0000000-0000-0000-0000-000000000004',null,
-  'Stock mínimo y máximo en bebidas y aceite','Definir niveles y pedido semanal fijo.','hacer','a0000000-0000-0000-0000-000000000002','2026-11-20','media',null),
+  'Stock mínimo y máximo en bebidas y aceite','Definir niveles y pedido semanal fijo.','hacer','a0000000-0000-0000-0000-000000000001','2026-11-20','media',null),
  ('f0000000-0000-0000-0000-000000000006','c0000000-0000-0000-0000-000000000002','d0000000-0000-0000-0000-000000000012','e0000000-0000-0000-0000-000000000005',
   'Reducir la carta a 28 referencias','Usar ventas de los últimos 6 meses y escandallos.','planificar','a0000000-0000-0000-0000-000000000001','2027-01-20','alta',null),
  ('f0000000-0000-0000-0000-000000000007','c0000000-0000-0000-0000-000000000003','d0000000-0000-0000-0000-000000000014','e0000000-0000-0000-0000-000000000007',
-  'Segundo punto de huevos y café en el buffet','Duplicar estación caliente entre 9:00 y 10:30.','verificar','a0000000-0000-0000-0000-000000000002','2026-11-15','media',
+  'Segundo punto de huevos y café en el buffet','Duplicar estación caliente entre 9:00 y 10:30.','verificar','a0000000-0000-0000-0000-000000000001','2026-11-15','media',
   'Cola media reducida de 7 a 2 minutos.');
 
 -- ---------- Tareas ----------
 insert into tareas (proyecto_id, accion_id, titulo, estado, prioridad, responsable_id, vence, orden) values
- ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000001','Registrar descartes de pescado cada noche','en_curso','alta','a0000000-0000-0000-0000-000000000003','2026-11-30',1),
+ ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000001','Registrar descartes de pescado cada noche','en_curso','alta',null,'2026-11-30',1),
  ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000001','Revisar tabla de producción con jefa de cocina','hecha','media','a0000000-0000-0000-0000-000000000001','2026-11-10',2),
- ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000003','Pedir presupuesto de segunda freidora','pendiente','alta','a0000000-0000-0000-0000-000000000003','2026-11-20',3),
- ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000003','Redistribuir puesto de fritura para llevar','pendiente','media','a0000000-0000-0000-0000-000000000002','2026-12-10',4),
- ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000005','Definir stock mínimo y máximo de bebidas','en_curso','media','a0000000-0000-0000-0000-000000000002','2026-11-18',5),
- ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000004','Pedir demo de dos comanderos digitales','pendiente','baja','a0000000-0000-0000-0000-000000000002','2026-12-20',6),
- ('c0000000-0000-0000-0000-000000000001',null,'Enviar facturas de octubre a la consultora','bloqueada','media','a0000000-0000-0000-0000-000000000003','2026-11-15',7),
+ ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000003','Pedir presupuesto de segunda freidora','pendiente','alta',null,'2026-11-20',3),
+ ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000003','Redistribuir puesto de fritura para llevar','pendiente','media','a0000000-0000-0000-0000-000000000001','2026-12-10',4),
+ ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000005','Definir stock mínimo y máximo de bebidas','en_curso','media','a0000000-0000-0000-0000-000000000001','2026-11-18',5),
+ ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000004','Pedir demo de dos comanderos digitales','pendiente','baja','a0000000-0000-0000-0000-000000000001','2026-12-20',6),
+ ('c0000000-0000-0000-0000-000000000001',null,'Enviar facturas de octubre a la consultora','bloqueada','media',null,'2026-11-15',7),
  ('c0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000002','Añadir medición de aceite al checklist de cierre','hecha','media','a0000000-0000-0000-0000-000000000001','2026-10-31',8),
- ('c0000000-0000-0000-0000-000000000002',null,'Exportar ventas por plato de los últimos 6 meses del TPV','pendiente','alta','a0000000-0000-0000-0000-000000000004','2026-11-28',1),
+ ('c0000000-0000-0000-0000-000000000002',null,'Exportar ventas por plato de los últimos 6 meses del TPV','pendiente','alta',null,'2026-11-28',1),
  ('c0000000-0000-0000-0000-000000000002','f0000000-0000-0000-0000-000000000006','Escandallar los 46 platos actuales','en_curso','alta','a0000000-0000-0000-0000-000000000001','2026-12-05',2),
- ('c0000000-0000-0000-0000-000000000002',null,'Fotografiar la carta actual y la pizarra de sugerencias','hecha','baja','a0000000-0000-0000-0000-000000000004','2026-11-10',3),
- ('c0000000-0000-0000-0000-000000000003','f0000000-0000-0000-0000-000000000007','Medir colas del buffet durante dos semanas','hecha','media','a0000000-0000-0000-0000-000000000002','2026-11-10',1),
- ('c0000000-0000-0000-0000-000000000003',null,'Preparar informe de cierre','pendiente','alta','a0000000-0000-0000-0000-000000000002','2026-12-15',2),
- ('c0000000-0000-0000-0000-000000000003',null,'Sesión de refresco de alérgenos con el turno de tarde','pendiente','media','a0000000-0000-0000-0000-000000000002','2026-11-21',3);
+ ('c0000000-0000-0000-0000-000000000002',null,'Fotografiar la carta actual y la pizarra de sugerencias','hecha','baja',null,'2026-11-10',3),
+ ('c0000000-0000-0000-0000-000000000003','f0000000-0000-0000-0000-000000000007','Medir colas del buffet durante dos semanas','hecha','media','a0000000-0000-0000-0000-000000000001','2026-11-10',1),
+ ('c0000000-0000-0000-0000-000000000003',null,'Preparar informe de cierre','pendiente','alta','a0000000-0000-0000-0000-000000000001','2026-12-15',2),
+ ('c0000000-0000-0000-0000-000000000003',null,'Sesión de refresco de alérgenos con el turno de tarde','pendiente','media','a0000000-0000-0000-0000-000000000001','2026-11-21',3);
 
 -- ---------- Agenda ----------
 insert into eventos (organizacion_id, proyecto_id, tipo, titulo, inicio, fin, lugar, creado_por)
@@ -331,9 +315,12 @@ insert into actas (proyecto_id, fecha, titulo, asistentes, contenido, acuerdos, 
   'Se acuerdan los objetivos y el calendario. Carmen enviará las ventas por plato del TPV.',
   '[{"texto":"Enviar exportación de ventas del TPV","responsable":"Carmen Ruiz","hecho":false}]','a0000000-0000-0000-0000-000000000001');
 
-insert into comentarios (proyecto_id, entidad, entidad_id, autor_id, texto, interno)
-select 'c0000000-0000-0000-0000-000000000001'::uuid, 'accion'::entidad_comentario, 'f0000000-0000-0000-0000-000000000003'::uuid, 'a0000000-0000-0000-0000-000000000003'::uuid,
-       'Tengo dos presupuestos, os los subo esta semana.', false
-union all
-select 'c0000000-0000-0000-0000-000000000001'::uuid, 'accion'::entidad_comentario, 'f0000000-0000-0000-0000-000000000003'::uuid, 'a0000000-0000-0000-0000-000000000001'::uuid,
-       'Ojo: la instalación eléctrica puede no aguantar otra freidora. Revisar antes de comprar.', true;
+insert into comentarios (proyecto_id, entidad, entidad_id, autor_id, texto) values
+ ('c0000000-0000-0000-0000-000000000001','accion','f0000000-0000-0000-0000-000000000003','a0000000-0000-0000-0000-000000000001',
+  'Manolo tiene dos presupuestos de freidora. Revisar antes si la instalación eléctrica aguanta otra.');
+
+-- ---------- Responsables del lado del cliente ----------
+update acciones set responsable_externo = 'Manolo Sánchez' where id in ('f0000000-0000-0000-0000-000000000002','f0000000-0000-0000-0000-000000000003');
+update tareas set responsable_externo = 'Manolo Sánchez' where titulo in ('Registrar descartes de pescado cada noche','Pedir presupuesto de segunda freidora','Enviar facturas de octubre a la consultora');
+update tareas set responsable_externo = 'Carmen Ruiz' where titulo in ('Exportar ventas por plato de los últimos 6 meses del TPV','Fotografiar la carta actual y la pizarra de sugerencias');
+

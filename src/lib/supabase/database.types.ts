@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "acciones": {
                   Row: {
-                    "created_at": string,"descripcion": string | null,"fase_pdca": Database["public"]['Enums']["fase_pdca"],"fecha_objetivo": string | null,"hallazgo_id": string | null,"id": string,"kpi_id": string | null,"prioridad": Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_id": string | null,"resultado": string | null,"titulo": string,"updated_at": string,"visible_cliente": boolean
+                    "created_at": string,"descripcion": string | null,"fase_pdca": Database["public"]['Enums']["fase_pdca"],"fecha_objetivo": string | null,"hallazgo_id": string | null,"id": string,"kpi_id": string | null,"prioridad": Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_externo": string | null,"responsable_id": string | null,"resultado": string | null,"titulo": string,"updated_at": string,"visible_cliente": boolean
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"descripcion"?: string | null,"fase_pdca"?: Database["public"]['Enums']["fase_pdca"],"fecha_objetivo"?: string | null,"hallazgo_id"?: string | null,"id"?: string,"kpi_id"?: string | null,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_id"?: string | null,"resultado"?: string | null,"titulo": string,"updated_at"?: string,"visible_cliente"?: boolean
+                    "created_at"?: string,"descripcion"?: string | null,"fase_pdca"?: Database["public"]['Enums']["fase_pdca"],"fecha_objetivo"?: string | null,"hallazgo_id"?: string | null,"id"?: string,"kpi_id"?: string | null,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_externo"?: string | null,"responsable_id"?: string | null,"resultado"?: string | null,"titulo": string,"updated_at"?: string,"visible_cliente"?: boolean
                   }
                   Update: {
-                    "created_at"?: string,"descripcion"?: string | null,"fase_pdca"?: Database["public"]['Enums']["fase_pdca"],"fecha_objetivo"?: string | null,"hallazgo_id"?: string | null,"id"?: string,"kpi_id"?: string | null,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id"?: string,"responsable_id"?: string | null,"resultado"?: string | null,"titulo"?: string,"updated_at"?: string,"visible_cliente"?: boolean
+                    "created_at"?: string,"descripcion"?: string | null,"fase_pdca"?: Database["public"]['Enums']["fase_pdca"],"fecha_objetivo"?: string | null,"hallazgo_id"?: string | null,"id"?: string,"kpi_id"?: string | null,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id"?: string,"responsable_externo"?: string | null,"responsable_id"?: string | null,"resultado"?: string | null,"titulo"?: string,"updated_at"?: string,"visible_cliente"?: boolean
                   }
                   Relationships: [
                     {
@@ -413,6 +413,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"informes": {
+                  Row: {
+                    "conclusiones": string | null,"created_at": string,"enviado_a": string | null,"enviado_at": string | null,"estado": Database["public"]['Enums']["estado_informe"],"id": string,"introduccion": string | null,"periodo_desde": string | null,"periodo_hasta": string | null,"proximos_pasos": string | null,"proyecto_id": string,"secciones": (string)[],"tipo": Database["public"]['Enums']["tipo_informe"],"titulo": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "conclusiones"?: string | null,"created_at"?: string,"enviado_a"?: string | null,"enviado_at"?: string | null,"estado"?: Database["public"]['Enums']["estado_informe"],"id"?: string,"introduccion"?: string | null,"periodo_desde"?: string | null,"periodo_hasta"?: string | null,"proximos_pasos"?: string | null,"proyecto_id": string,"secciones"?: (string)[],"tipo"?: Database["public"]['Enums']["tipo_informe"],"titulo": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "conclusiones"?: string | null,"created_at"?: string,"enviado_a"?: string | null,"enviado_at"?: string | null,"estado"?: Database["public"]['Enums']["estado_informe"],"id"?: string,"introduccion"?: string | null,"periodo_desde"?: string | null,"periodo_hasta"?: string | null,"proximos_pasos"?: string | null,"proyecto_id"?: string,"secciones"?: (string)[],"tipo"?: Database["public"]['Enums']["tipo_informe"],"titulo"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "informes_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "informes_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"kpi_valores": {
                   Row: {
                     "fuente": string,"id": string,"kpi_id": string,"nota": string | null,"periodo": string,"valor": number
@@ -625,14 +651,14 @@ isOneToOne: false
                   ]
                 },"tareas": {
                   Row: {
-                    "accion_id": string | null,"completada_at": string | null,"created_at": string,"descripcion": string | null,"estado": Database["public"]['Enums']["estado_tarea"],"id": string,"orden": number,"prioridad": Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_id": string | null,"titulo": string,"updated_at": string,"vence": string | null
+                    "accion_id": string | null,"completada_at": string | null,"created_at": string,"descripcion": string | null,"estado": Database["public"]['Enums']["estado_tarea"],"id": string,"orden": number,"prioridad": Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_externo": string | null,"responsable_id": string | null,"titulo": string,"updated_at": string,"vence": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "accion_id"?: string | null,"completada_at"?: string | null,"created_at"?: string,"descripcion"?: string | null,"estado"?: Database["public"]['Enums']["estado_tarea"],"id"?: string,"orden"?: number,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_id"?: string | null,"titulo": string,"updated_at"?: string,"vence"?: string | null
+                    "accion_id"?: string | null,"completada_at"?: string | null,"created_at"?: string,"descripcion"?: string | null,"estado"?: Database["public"]['Enums']["estado_tarea"],"id"?: string,"orden"?: number,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id": string,"responsable_externo"?: string | null,"responsable_id"?: string | null,"titulo": string,"updated_at"?: string,"vence"?: string | null
                   }
                   Update: {
-                    "accion_id"?: string | null,"completada_at"?: string | null,"created_at"?: string,"descripcion"?: string | null,"estado"?: Database["public"]['Enums']["estado_tarea"],"id"?: string,"orden"?: number,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id"?: string,"responsable_id"?: string | null,"titulo"?: string,"updated_at"?: string,"vence"?: string | null
+                    "accion_id"?: string | null,"completada_at"?: string | null,"created_at"?: string,"descripcion"?: string | null,"estado"?: Database["public"]['Enums']["estado_tarea"],"id"?: string,"orden"?: number,"prioridad"?: Database["public"]['Enums']["prioridad"],"proyecto_id"?: string,"responsable_externo"?: string | null,"responsable_id"?: string | null,"titulo"?: string,"updated_at"?: string,"vence"?: string | null
                   }
                   Relationships: [
                     {
@@ -734,7 +760,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_fase": "pendiente"|"en_curso"|"completada","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe"
+            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -854,7 +880,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"]
+            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"]
           }
         }
 } as const

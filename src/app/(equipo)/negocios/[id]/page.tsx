@@ -84,7 +84,7 @@ export default async function Negocio({ params }: { params: Promise<{ id: string
           </Card>
           <div>
             <h2 className="mb-3 font-mono text-base font-bold">Documentación general</h2>
-            <Documentos ambito={{ negocio_id: id }} docs={docs.docs} carpetas={docs.carpetas} editar esCliente={false} />
+            <Documentos ambito={{ negocio_id: id }} docs={docs.docs} carpetas={docs.carpetas} />
           </div>
         </div>
       </div>

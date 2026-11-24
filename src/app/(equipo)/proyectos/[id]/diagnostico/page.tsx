@@ -52,7 +52,7 @@ export default async function Diagnostico({ params }: { params: Promise<{ id: st
       {h.descripcion && <p className="mt-1 line-clamp-3 text-[13px] text-muted-foreground">{h.descripcion}</p>}
       {h.fotos.length > 0 && <div className="mt-2 flex gap-1.5">{h.fotos.slice(0, 4).map((f) => urls[f] && <img key={f} src={urls[f]} alt="" className="size-12 rounded-sm object-cover" />)}</div>}
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground">{h.area ? AREAS[h.area] : ""}{h.coste_estimado ? ` · ${eur(Number(h.coste_estimado))}/mes` : ""}{!h.visible_cliente ? " · interno" : ""}</span>
+        <span className="text-xs text-muted-foreground">{h.area ? AREAS[h.area] : ""}{h.coste_estimado ? ` · ${eur(Number(h.coste_estimado))}/mes` : ""}{!h.visible_cliente ? " · fuera de informes" : ""}</span>
         {editar && (
           <span className="flex gap-1">
             <BotonAccion size="sm" variant="ghost" title="Crear acción de mejora" accion={async () => { "use server"; return A.hallazgoAAccion(id, h.id); }}>Acción<ArrowRight /></BotonAccion>

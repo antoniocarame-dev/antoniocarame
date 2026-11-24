@@ -71,7 +71,7 @@ export function HallazgoDialogo({ proyectoId, hallazgo, trigger, titulo = "Nuevo
           </div>
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input type="checkbox" name="visible_cliente" defaultChecked={hallazgo?.visible_cliente ?? true} className="size-4 accent-[var(--primary)]" />
-            Visible para el cliente en su portal
+            Incluir en los informes
           </label>
         </div>
         <div className="mt-5 flex justify-end gap-2">

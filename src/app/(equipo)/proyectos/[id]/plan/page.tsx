@@ -21,21 +21,25 @@ const PRESETS: [string, string, string, string][] = [
 
 export default async function Plan({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase, esEquipo } = await getSesion();
+  const { supabase, perfil } = await getSesion();
   const editar = await puedeEditarProyecto(id);
-  const [{ data: kpis }, { data: acciones }, { data: tareas }, { data: hallazgos }, { data: miembros }, { data: comentarios }] = await Promise.all([
+  const [{ data: kpis }, { data: acciones }, { data: tareas }, { data: hallazgos }, { data: proy }, { data: comentarios }] = await Promise.all([
     supabase.from("kpis").select("*, kpi_valores(*)").eq("proyecto_id", id).order("created_at"),
     supabase.from("acciones").select("*").eq("proyecto_id", id).order("fecha_objetivo", { nullsFirst: false }),
     supabase.from("tareas").select("*").eq("proyecto_id", id).order("vence", { nullsFirst: false }),
     supabase.from("hallazgos").select("id, titulo").eq("proyecto_id", id),
-    supabase.from("proyecto_miembros").select("usuario_id, rol, perfiles(nombre)").eq("proyecto_id", id),
+    supabase.from("proyectos").select("negocios(contactos(nombre, cargo))").eq("id", id).single(),
     supabase.from("comentarios").select("*, perfiles(nombre)").eq("proyecto_id", id).order("created_at"),
   ]);
-  const personas = (miembros ?? []).map((m) => [m.usuario_id, m.perfiles?.nombre ?? "—"] as [string, string]);
-  const nombre = (u: string | null) => personas.find(([k]) => k === u)?.[1] ?? "Sin asignar";
-  const esCliente = (u: string | null) => miembros?.some((m) => m.usuario_id === u && m.rol === "cliente");
+  // Responsables: yo o un contacto del cliente (por nombre)
+  const contactos = proy?.negocios?.contactos ?? [];
+  const personas: [string, string][] = [["yo", `Yo (${perfil.nombre})`], ...contactos.map((c) => [`ext:${c.nombre}`, `${c.nombre}${c.cargo ? ` · ${c.cargo}` : ""}`] as [string, string])];
+  type R = { responsable_id: string | null; responsable_externo: string | null };
+  const valorResp = (x?: R) => !x ? "yo" : x.responsable_externo ? `ext:${x.responsable_externo}` : x.responsable_id ? "yo" : "";
+  const opcionesResp = (x?: R) => x?.responsable_externo && !contactos.some((c) => c.nombre === x.responsable_externo) ? [...personas, [`ext:${x.responsable_externo}`, x.responsable_externo] as [string, string]] : personas;
+  const nombre = (x: R) => x.responsable_externo ?? (x.responsable_id ? "Yo" : "Sin asignar");
   const coms = (entidad: string, eid: string) => (comentarios ?? []).filter((c) => c.entidad === entidad && c.entidad_id === eid)
-    .map((c) => ({ id: c.id, texto: c.texto, autor: c.perfiles?.nombre ?? "—", fecha: fecha(c.created_at), interno: c.interno }));
+    .map((c) => ({ id: c.id, texto: c.texto, autor: c.perfiles?.nombre ?? "—", fecha: fecha(c.created_at) }));
   const mesActual = new Date().toISOString().slice(0, 7);
 
   const camposAccion = (a?: Tabla<"acciones">) => (
@@ -43,19 +47,19 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
       <Campo label="Acción" className="sm:col-span-2"><Input name="titulo" required defaultValue={a?.titulo} /></Campo>
       <Campo label="Fase PDCA"><Select name="fase_pdca" defaultValue={a?.fase_pdca ?? "planificar"} opciones={opciones(PDCA)} /></Campo>
       <Campo label="Prioridad"><Select name="prioridad" defaultValue={a?.prioridad ?? "media"} opciones={opciones(PRIORIDAD)} /></Campo>
-      <Campo label="Responsable"><Select name="responsable_id" defaultValue={a?.responsable_id ?? ""} vacio="Sin asignar" opciones={personas} /></Campo>
+      <Campo label="Responsable" ayuda="Tú o alguien del cliente (contactos del negocio)"><Select name="responsable" defaultValue={valorResp(a)} vacio="Sin asignar" opciones={opcionesResp(a)} /></Campo>
       <Campo label="Fecha objetivo"><Input name="fecha_objetivo" type="date" defaultValue={a?.fecha_objetivo ?? ""} /></Campo>
       <Campo label="KPI que debe mejorar"><Select name="kpi_id" defaultValue={a?.kpi_id ?? ""} vacio="Ninguno" opciones={(kpis ?? []).map((k) => [k.id, k.nombre])} /></Campo>
       <Campo label="Hallazgo de origen"><Select name="hallazgo_id" defaultValue={a?.hallazgo_id ?? ""} vacio="Ninguno" opciones={(hallazgos ?? []).map((h) => [h.id, h.titulo])} /></Campo>
       <Campo label="Descripción" className="sm:col-span-2"><Textarea name="descripcion" defaultValue={a?.descripcion ?? ""} /></Campo>
       <Campo label="Resultado (verificar / actuar)" className="sm:col-span-2"><Textarea name="resultado" defaultValue={a?.resultado ?? ""} placeholder="Qué ha pasado con el KPI y qué se estandariza" /></Campo>
-      <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="visible_cliente" defaultChecked={a?.visible_cliente ?? true} className="size-4" />Visible para el cliente</label>
+      <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="visible_cliente" defaultChecked={a?.visible_cliente ?? true} className="size-4" />Incluir en los informes</label>
     </>
   );
   const camposTarea = (t?: Tabla<"tareas">) => (
     <>
       <Campo label="Tarea" className="sm:col-span-2"><Input name="titulo" required defaultValue={t?.titulo} /></Campo>
-      <Campo label="Responsable" ayuda="Puede ser alguien del cliente"><Select name="responsable_id" defaultValue={t?.responsable_id ?? ""} vacio="Sin asignar" opciones={personas} /></Campo>
+      <Campo label="Responsable" ayuda="Lo asignado al cliente sale en los informes"><Select name="responsable" defaultValue={valorResp(t)} vacio="Sin asignar" opciones={opcionesResp(t)} /></Campo>
       <Campo label="Vence"><Input name="vence" type="date" defaultValue={t?.vence ?? ""} /></Campo>
       <Campo label="Estado"><Select name="estado" defaultValue={t?.estado ?? "pendiente"} opciones={opciones(ESTADOS_TAREA)} /></Campo>
       <Campo label="Prioridad"><Select name="prioridad" defaultValue={t?.prioridad ?? "media"} opciones={opciones(PRIORIDAD)} /></Campo>
@@ -80,7 +84,7 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
               <Campo label="Objetivo"><Input name="objetivo" type="number" step="any" /></Campo>
               <Campo label="Es mejor si…"><Select name="sentido" opciones={[["bajar", "Baja"], ["subir", "Sube"]]} /></Campo>
               <Campo label="Código interno"><Select name="codigo" vacio="Otro" opciones={PRESETS.map((p) => [p[0], p[1]])} /></Campo>
-              <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="visible_cliente" defaultChecked className="size-4" />Visible para el cliente</label>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="visible_cliente" defaultChecked className="size-4" />Incluir en los informes</label>
             </DialogoForm>
           )}
         </div>
@@ -114,7 +118,7 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
                         <Campo label="Objetivo"><Input name="objetivo" type="number" step="any" defaultValue={k.objetivo ?? ""} /></Campo>
                         <Campo label="Es mejor si…"><Select name="sentido" defaultValue={k.sentido} opciones={[["bajar", "Baja"], ["subir", "Sube"]]} /></Campo>
                         <input type="hidden" name="codigo" value={k.codigo ?? ""} />
-                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="visible_cliente" defaultChecked={k.visible_cliente} className="size-4" />Visible para el cliente</label>
+                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="visible_cliente" defaultChecked={k.visible_cliente} className="size-4" />Incluir en los informes</label>
                       </DialogoForm>
                       <BotonAccion variant="ghost" size="icon" confirmar="¿Borrar?" title="Borrar KPI" accion={async () => { "use server"; return A.borrarKpi(id, k.id); }}><Trash2 /></BotonAccion>
                     </div>
@@ -146,13 +150,13 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
                     return (
                       <article key={a.id} className="rounded-sm border bg-card p-3 text-sm">
                         <p className="font-semibold leading-snug">{a.titulo}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{nombre(a.responsable_id)}{a.fecha_objetivo ? ` · ${fechaCorta(a.fecha_objetivo)}` : ""}{ts.length ? ` · ${ts.filter((t) => t.estado === "hecha").length}/${ts.length} tareas` : ""}</p>
-                        <div className="mt-2 flex flex-wrap gap-1"><Prioridad p={a.prioridad} />{k && <Badge tono="primary">{k.nombre}</Badge>}{!a.visible_cliente && <Badge>Interna</Badge>}</div>
+                        <p className="mt-1 text-xs text-muted-foreground">{nombre(a)}{a.fecha_objetivo ? ` · ${fechaCorta(a.fecha_objetivo)}` : ""}{ts.length ? ` · ${ts.filter((t) => t.estado === "hecha").length}/${ts.length} tareas` : ""}</p>
+                        <div className="mt-2 flex flex-wrap gap-1"><Prioridad p={a.prioridad} />{k && <Badge tono="primary">{k.nombre}</Badge>}{!a.visible_cliente && <Badge>Fuera de informes</Badge>}</div>
                         {a.resultado && <p className="mt-2 border-l-2 border-ok pl-2 text-[13px] text-muted-foreground">{a.resultado}</p>}
                         <div className="mt-2 flex flex-wrap items-center gap-1 border-t pt-2">
                           {editar && <SelectAccion label="Fase" valor={a.fase_pdca} opciones={opciones(PDCA)} accion={async (v) => { "use server"; return A.moverAccion(id, a.id, v as typeof f); }} />}
                           {editar && <DialogoForm titulo="Editar acción" ancho="max-w-2xl" trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil /></Button>} action={async (fd) => { "use server"; return A.guardarAccion(id, a.id, fd); }}>{camposAccion(a)}</DialogoForm>}
-                          <Comentarios titulo={a.titulo} lista={coms("accion", a.id)} permitirInterno={esEquipo} accion={async (fd) => { "use server"; return A.comentar(id, "accion", a.id, fd); }} />
+                          <Comentarios titulo={a.titulo} lista={coms("accion", a.id)} accion={async (fd) => { "use server"; return A.comentar(id, "accion", a.id, fd); }} />
                           {editar && <BotonAccion variant="ghost" size="icon" confirmar="¿Borrar?" title="Borrar acción" accion={async () => { "use server"; return A.borrarAccion(id, a.id); }}><Trash2 /></BotonAccion>}
                         </div>
                       </article>
@@ -168,7 +172,7 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
       {/* Tareas */}
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div><h2 className="font-mono text-base font-bold">Tareas</h2><p className="text-sm text-muted-foreground">Las del cliente aparecen en su portal para que las avance.</p></div>
+          <div><h2 className="font-mono text-base font-bold">Tareas</h2><p className="text-sm text-muted-foreground">Las asignadas al cliente (en cobre) salen en los informes como «Pendiente por vuestra parte».</p></div>
           {editar && <DialogoForm titulo="Nueva tarea" trigger={<Button size="sm"><Plus />Tarea</Button>} action={async (fd) => { "use server"; return A.guardarTarea(id, null, fd); }}>{camposTarea()}</DialogoForm>}
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -184,14 +188,14 @@ export default async function Plan({ params }: { params: Promise<{ id: string }>
                       <article key={t.id} className="rounded-sm border bg-card p-3 text-sm">
                         <p className={"font-medium leading-snug " + (t.estado === "hecha" ? "text-muted-foreground line-through" : "")}>{t.titulo}</p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                          <Badge tono={esCliente(t.responsable_id) ? "primary" : "neutro"}>{nombre(t.responsable_id)}</Badge>
+                          <Badge tono={t.responsable_externo ? "primary" : "neutro"}>{nombre(t)}</Badge>
                           {t.vence && <Badge tono={t.estado !== "hecha" && d! < 0 ? "bad" : t.estado !== "hecha" && d! <= 3 ? "warn" : "neutro"}>{fechaCorta(t.vence)}</Badge>}
                           {t.prioridad === "alta" && <Prioridad p="alta" />}
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-1 border-t pt-2">
                           {editar && <SelectAccion label="Estado" valor={t.estado} opciones={opciones(ESTADOS_TAREA)} accion={async (v) => { "use server"; return A.estadoTarea(id, t.id, v as typeof e); }} />}
                           {editar && <DialogoForm titulo="Editar tarea" trigger={<Button variant="ghost" size="icon" aria-label="Editar"><Pencil /></Button>} action={async (fd) => { "use server"; return A.guardarTarea(id, t.id, fd); }}>{camposTarea(t)}</DialogoForm>}
-                          <Comentarios titulo={t.titulo} lista={coms("tarea", t.id)} permitirInterno={esEquipo} accion={async (fd) => { "use server"; return A.comentar(id, "tarea", t.id, fd); }} />
+                          <Comentarios titulo={t.titulo} lista={coms("tarea", t.id)} accion={async (fd) => { "use server"; return A.comentar(id, "tarea", t.id, fd); }} />
                           {editar && <BotonAccion variant="ghost" size="icon" confirmar="¿Borrar?" title="Borrar tarea" accion={async () => { "use server"; return A.borrarTarea(id, t.id); }}><Trash2 /></BotonAccion>}
                         </div>
                       </article>

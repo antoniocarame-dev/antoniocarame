@@ -1,7 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { getSesion } from "@/lib/sesion";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { bool, err, num, txt, type Res } from "./comun";
 import type { Database } from "@/lib/supabase/database.types";
 type E = Database["public"]["Enums"];
@@ -60,31 +59,9 @@ export async function guardarOrganizacion(fd: FormData): Promise<Res> {
   return err(error);
 }
 
-/** Invita a una persona por correo. Usa service role solo después de comprobar que quien llama es admin. */
-export async function invitarUsuario(fd: FormData): Promise<Res> {
-  const { esAdmin, perfil } = await getSesion();
-  if (!esAdmin) return { ok: false, error: "Solo un administrador puede invitar." };
-  const email = txt(fd, "email"); const nombre = txt(fd, "nombre") ?? ""; const rol = (txt(fd, "rol") ?? "cliente") as E["rol_global"];
-  const proyecto_id = txt(fd, "proyecto_id");
-  if (!email) return { ok: false, error: "Indica el correo." };
-  const admin = supabaseAdmin();
-  const sitio = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: { nombre }, redirectTo: `${sitio}/bienvenida` });
-  if (error) return { ok: false, error: error.message.includes("already") ? "Ese correo ya tiene cuenta." : "No se ha podido invitar: " + error.message };
-  const uid = data.user.id;
-  await admin.from("perfiles").update({ rol, nombre: nombre || email.split("@")[0], organizacion_id: perfil.organizacion_id }).eq("id", uid);
-  if (proyecto_id) {
-    await admin.from("proyecto_miembros").upsert({ proyecto_id, usuario_id: uid,
-      rol: rol === "admin" ? "consultor" : rol === "colaborador" ? "colaborador" : rol === "personal" ? "personal" : "cliente" });
-  }
-  revalidatePath("/ajustes");
-  return { ok: true };
-}
-
-export async function cambiarRol(usuario_id: string, rol: E["rol_global"]): Promise<Res> {
+export async function guardarPerfil(fd: FormData): Promise<Res> {
   const { supabase, user } = await getSesion();
-  if (usuario_id === user.id) return { ok: false, error: "No puedes cambiar tu propio rol." };
-  const { error } = await supabase.from("perfiles").update({ rol }).eq("id", usuario_id);
-  revalidatePath("/ajustes");
+  const { error } = await supabase.from("perfiles").update({ nombre: txt(fd, "nombre") ?? "", telefono: txt(fd, "telefono"), tarifa_hora: num(fd, "tarifa_hora") }).eq("id", user.id);
+  revalidatePath("/", "layout");
   return err(error);
 }
