@@ -188,8 +188,8 @@ function FormEvento({ evento, dia, proyectos, onCerrar, onOk }: {
           {varios ? <Campo label="Hasta el día"><Input name="dia_fin" type="date" required defaultValue={evento?.diaFin ?? dia} /></Campo> : <span className="hidden sm:block" />}
           {!todo && (
             <div className="grid grid-cols-2 gap-2 sm:col-span-2">
-              <Campo label="Desde"><Input name="hora_inicio" type="time" defaultValue={evento?.hIni ?? "10:00"} /></Campo>
-              <Campo label="Hasta"><Input name="hora_fin" type="time" defaultValue={evento?.hFin ?? ""} /></Campo>
+              <Campo label="Desde"><HoraDigital name="hora_inicio" inicial={evento?.hIni ?? "10:00"} /></Campo>
+              <Campo label="Hasta"><HoraDigital name="hora_fin" inicial={evento?.hFin ?? ""} opcional /></Campo>
             </div>
           )}
           <Campo label="Lugar" className="sm:col-span-2"><Input name="lugar" defaultValue={evento?.lugar ?? ""} /></Campo>
@@ -202,5 +202,30 @@ function FormEvento({ evento, dia, proyectos, onCerrar, onOk }: {
         </div>
       </FormAccion>
     </Dialogo>
+  );
+}
+
+const HORAS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTOS = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+
+/** Hora en formato digital (24 h): dos desplegables, hora y minutos, en vez del reloj de agujas del móvil. */
+function HoraDigital({ name, inicial, opcional = false }: { name: string; inicial: string; opcional?: boolean }) {
+  const [h0, m0] = inicial ? inicial.split(":") : ["", ""];
+  const [h, setH] = useState(h0);
+  const [m, setM] = useState(m0 || "00");
+  const minutos = MINUTOS.includes(m) ? MINUTOS : [...MINUTOS, m].sort();
+  const sel = "h-10 rounded-sm border border-input bg-card px-2 font-mono text-base font-bold tnum";
+  return (
+    <span className="flex items-center gap-1">
+      <input type="hidden" name={name} value={h ? `${h}:${m}` : ""} />
+      <select aria-label={`${name === "hora_fin" ? "Hasta" : "Desde"}: hora`} value={h} onChange={(e) => setH(e.target.value)} className={sel}>
+        {opcional && <option value="">--</option>}
+        {HORAS.map((x) => <option key={x} value={x}>{x}</option>)}
+      </select>
+      <span className="font-mono text-lg font-bold">:</span>
+      <select aria-label={`${name === "hora_fin" ? "Hasta" : "Desde"}: minutos`} value={m} onChange={(e) => setM(e.target.value)} disabled={!h} className={sel}>
+        {minutos.map((x) => <option key={x} value={x}>{x}</option>)}
+      </select>
+    </span>
   );
 }

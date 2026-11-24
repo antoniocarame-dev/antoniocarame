@@ -253,7 +253,8 @@ test.describe("Recorridos principales", () => {
     await page.goto("/agenda?mes=2026-07");
     await page.locator('[data-dia="2026-07-15"]').dblclick();
     await page.getByRole("dialog").locator("input[name=titulo]").fill("Cata en bodega");
-    await page.getByRole("dialog").locator("input[name=hora_inicio]").fill("10:30");
+    await page.getByRole("dialog").getByLabel("Desde: hora").selectOption("10");
+    await page.getByRole("dialog").getByLabel("Desde: minutos").selectOption("30");
     await page.getByRole("dialog").getByRole("button", { name: "Añadir" }).click();
     await expect(page.locator('[data-dia="2026-07-15"]')).toContainText("10:30Cata en bodega");
 
