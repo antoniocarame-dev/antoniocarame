@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Kpi, Semaforo, EstadoProyecto, Progreso } from "@/components/piezas";
 import { Vacio } from "@/components/ui/vacio";
 import { requiereEquipo } from "@/lib/sesion";
-import { estadoKpi, eur, fecha, hoyISO, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO } from "@/lib/utils";
+import { estadoKpi, eur, fecha, hoyISO, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO, madridAISO, diaMadrid } from "@/lib/utils";
 
 export const metadata = { title: "Panel" };
 
@@ -20,7 +20,7 @@ export default async function Panel() {
     supabase.from("perfiles").select("id, nombre"),
     esAdmin ? supabase.from("proyecto_finanzas").select("*") : Promise.resolve({ data: [] as never[] }),
     supabase.from("kpis").select("id, nombre, unidad, objetivo, valor_base, sentido, proyecto_id, kpi_valores(periodo, valor)"),
-    supabase.from("eventos").select("*, proyectos(titulo)").gte("inicio", ahora.toISOString()).lte("inicio", en14.toISOString()).order("inicio"),
+    supabase.from("eventos").select("*, proyectos(titulo)").gte("inicio", madridAISO(diaMadrid(ahora))).lte("inicio", en14.toISOString()).order("inicio"),
     supabase.from("v_productos_precio").select("id, nombre, unidad, precio_actual, precio_anterior, variacion_pct, fecha_precio, negocio_id").gte("variacion_pct", 5).gte("fecha_precio", hace60).order("variacion_pct", { ascending: false }).limit(8),
     supabase.from("facturas").select("negocio_id").eq("estado", "pendiente"),
   ]);
@@ -91,7 +91,7 @@ export default async function Panel() {
                 {eventos.map((e) => (
                   <li key={e.id} className="flex gap-3 py-2.5">
                     <div className="w-12 shrink-0 text-center font-mono"><p className="text-[10px] uppercase text-muted-foreground">{fecha(e.inicio, { weekday: "short" })}</p><p className="text-lg font-bold leading-tight">{fecha(e.inicio, { day: "numeric" })}</p></div>
-                    <div className="min-w-0"><p className="font-medium">{e.titulo}</p><p className="text-xs text-muted-foreground">{TIPOS_EVENTO[e.tipo]} · {hora(e.inicio)}{e.lugar ? ` · ${e.lugar}` : ""}</p></div>
+                    <div className="min-w-0"><p className="font-medium">{e.titulo}</p><p className="text-xs text-muted-foreground">{TIPOS_EVENTO[e.tipo]} · {e.todo_el_dia ? "Todo el día" : hora(e.inicio)}{e.lugar ? ` · ${e.lugar}` : ""}</p></div>
                   </li>
                 ))}
               </ul>

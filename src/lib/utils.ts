@@ -63,8 +63,24 @@ export const ESTADOS_TAREA: Record<E["estado_tarea"], string> = {
 };
 export const PRIORIDAD: Record<E["prioridad"], string> = { baja: "Baja", media: "Media", alta: "Alta" };
 export const TIPOS_EVENTO: Record<E["tipo_evento"], string> = {
-  visita: "Visita", auditoria: "Auditoría", entrega: "Entrega", reunion: "Reunión", formacion: "Formación",
+  visita: "Visita", auditoria: "Auditoría", entrega: "Entrega", reunion: "Reunión", formacion: "Formación", personal: "Personal", otro: "Otro",
 };
+
+/** Día (AAAA-MM-DD) de un instante en hora de España. */
+export const diaMadrid = (d: string | Date) => new Date(d).toLocaleDateString("sv-SE", { timeZone: TZ });
+/** Hora (HH:MM) de un instante en hora de España. */
+export const horaMadrid = (d: string | Date) => new Date(d).toLocaleTimeString("sv-SE", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+/** Convierte día y hora de España (con su horario de verano) a ISO en UTC. */
+export function madridAISO(dia: string, h = "00:00"): string {
+  const [y, m, d] = dia.split("-").map(Number); const [hh, mm] = h.split(":").map(Number);
+  const supuesto = Date.UTC(y, m - 1, d, hh, mm);
+  const enMadrid = (t: number) => { const [f, x] = new Date(t).toLocaleString("sv-SE", { timeZone: TZ }).split(" "); const [a, b, c] = f.split("-").map(Number); const [e, g] = x.split(":").map(Number); return Date.UTC(a, b - 1, c, e, g); };
+  const desfase = enMadrid(supuesto) - supuesto;
+  let t = supuesto - desfase;
+  const desfase2 = enMadrid(t) - t; // por si el cambio de hora cae entre medias
+  if (desfase2 !== desfase) t = supuesto - desfase2;
+  return new Date(t).toISOString();
+}
 export const ROLES: Record<E["rol_global"], string> = {
   admin: "Administrador", colaborador: "Colaborador", cliente: "Cliente", personal: "Personal del cliente",
 };

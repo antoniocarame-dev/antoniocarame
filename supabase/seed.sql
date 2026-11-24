@@ -304,6 +304,8 @@ from organizaciones o, (values
  ('c0000000-0000-0000-0000-000000000003','formacion','Formación de alérgenos · turno tarde','2026-12-02 16:00+01','2026-12-02 17:30+01','Hotel Arenas de Levante'),
  (null,'reunion','Reunión HORECA Cádiz · mesa de transformación','2026-12-10 10:00+01','2026-12-10 13:00+01','Cádiz')
 ) as v(p,t,tit,ini,fin,lug);
+insert into eventos (organizacion_id, tipo, titulo, inicio, fin, todo_el_dia, creado_por)
+select id, 'personal', 'Puente de diciembre', '2026-12-07 00:00+01', '2026-12-08 00:00+01', true, 'a0000000-0000-0000-0000-000000000001' from organizaciones;
 
 -- ---------- Actas y comentarios ----------
 insert into actas (proyecto_id, fecha, titulo, asistentes, contenido, acuerdos, creado_por) values

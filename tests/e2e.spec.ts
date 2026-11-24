@@ -224,4 +224,43 @@ test.describe("Recorridos principales", () => {
     await expect(page.getByText("Objetivo: 0 a 4 °C")).toBeVisible();
     await expect(page.getByText("Necesidades detectadas y hallazgos")).toBeVisible();
   });
+
+  test("calendario mensual: crear un evento personal de varios días, editarlo y borrarlo", async ({ page }) => {
+    await page.goto("/agenda?mes=2026-12");
+    await expect(page.getByRole("heading", { name: "Diciembre de 2026" })).toBeVisible();
+    await expect(page.locator('[data-dia="2026-12-07"]')).toContainText("Puente de diciembre");
+    await expect(page.locator('[data-dia="2026-12-08"]')).toContainText("Puente de diciembre");
+    await page.locator('[data-dia="2026-12-21"]').click();
+    await page.getByRole("button", { name: "Añadir" }).click();
+    const d = page.getByRole("dialog");
+    await d.locator("input[name=titulo]").fill("Vacaciones en familia");
+    await d.locator("select[name=tipo]").selectOption("personal");
+    await d.getByLabel("Todo el día").check();
+    await d.getByLabel("Varios días").check();
+    await d.locator("input[name=dia_fin]").fill("2026-12-23");
+    await d.getByRole("button", { name: "Añadir" }).click();
+    await expect(d).toHaveCount(0);
+    for (const dia of ["21", "22", "23"]) await expect(page.locator(`[data-dia="2026-12-${dia}"]`)).toContainText("Vacaciones en familia");
+    await expect(page.locator('[data-dia="2026-12-24"]')).not.toContainText("Vacaciones en familia");
+
+    await page.locator('[data-dia="2026-12-22"]').getByRole("button", { name: /Vacaciones en familia/ }).click();
+    await page.getByRole("dialog").locator("input[name=titulo]").fill("Vacaciones");
+    await page.getByRole("dialog").getByRole("button", { name: "Guardar" }).click();
+    await expect(page.locator('[data-dia="2026-12-21"]')).toContainText("Vacaciones");
+    await expect(page.locator('[data-dia="2026-12-21"]')).not.toContainText("en familia");
+
+    // Evento con hora en verano: la hora se conserva
+    await page.goto("/agenda?mes=2026-07");
+    await page.locator('[data-dia="2026-07-15"]').dblclick();
+    await page.getByRole("dialog").locator("input[name=titulo]").fill("Cata en bodega");
+    await page.getByRole("dialog").locator("input[name=hora_inicio]").fill("10:30");
+    await page.getByRole("dialog").getByRole("button", { name: "Añadir" }).click();
+    await expect(page.locator('[data-dia="2026-07-15"]')).toContainText("10:30Cata en bodega");
+
+    await page.goto("/agenda?mes=2026-12");
+    await page.locator('[data-dia="2026-12-21"]').getByRole("button", { name: /Vacaciones/ }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Borrar" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "¿Borrar el evento?" }).click();
+    await expect(page.locator('[data-dia="2026-12-21"]')).not.toContainText("Vacaciones");
+  });
 });

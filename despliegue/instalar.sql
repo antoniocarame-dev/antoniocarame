@@ -1216,3 +1216,12 @@ alter table public.proyectos add constraint proyectos_negocio_id_fkey
 alter table public.horas drop constraint if exists horas_proyecto_id_fkey;
 alter table public.horas add constraint horas_proyecto_id_fkey
   foreign key (proyecto_id) references public.proyectos(id) on delete set null;
+
+
+-- =============================================================
+-- 20261124000011_agenda.sql
+-- =============================================================
+-- Agenda libre: eventos personales y de todo el día
+alter type tipo_evento add value if not exists 'personal';
+alter type tipo_evento add value if not exists 'otro';
+alter table public.eventos add column if not exists todo_el_dia boolean not null default false;

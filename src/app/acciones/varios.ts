@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { getSesion } from "@/lib/sesion";
 import { bool, err, num, txt, type Res } from "./comun";
 import type { Database } from "@/lib/supabase/database.types";
+import { horaMadrid, madridAISO } from "@/lib/utils";
 type E = Database["public"]["Enums"];
 
 // ---------- Actas ----------
@@ -29,24 +30,52 @@ export async function borrarActa(proyecto_id: string, id: string): Promise<Res> 
 }
 
 // ---------- Agenda ----------
+function filaEvento(fd: FormData): { ok: false; error: string } | { ok: true; fila: { proyecto_id: string | null; tipo: E["tipo_evento"]; titulo: string; inicio: string; fin: string | null; lugar: string | null; notas: string | null; todo_el_dia: boolean } } {
+  const dia = txt(fd, "dia");
+  if (!dia) return { ok: false, error: "Indica el día." };
+  const todo = bool(fd, "todo_el_dia");
+  const ini = txt(fd, "hora_inicio") ?? "10:00"; const fin = txt(fd, "hora_fin");
+  const diaFin = txt(fd, "dia_fin");
+  if (diaFin && diaFin < dia) return { ok: false, error: "El último día no puede ser anterior al primero." };
+  if (!todo && fin && !diaFin && fin <= ini) return { ok: false, error: "La hora de fin debe ser posterior a la de inicio." };
+  return { ok: true, fila: {
+    proyecto_id: txt(fd, "proyecto_id"), tipo: (txt(fd, "tipo") ?? "visita") as E["tipo_evento"], titulo: txt(fd, "titulo") ?? "Evento",
+    inicio: madridAISO(dia, todo ? "00:00" : ini),
+    fin: todo ? (diaFin && diaFin > dia ? madridAISO(diaFin, "00:00") : null) : fin ? madridAISO(diaFin ?? dia, fin) : null,
+    lugar: txt(fd, "lugar"), notas: txt(fd, "notas"), todo_el_dia: todo,
+  } };
+}
+const refrescarAgenda = () => { revalidatePath("/agenda"); revalidatePath("/panel"); };
+
 export async function crearEvento(fd: FormData): Promise<Res> {
   const { supabase, perfil } = await getSesion();
-  const dia = txt(fd, "dia"); const ini = txt(fd, "hora_inicio") ?? "10:00"; const fin = txt(fd, "hora_fin");
-  if (!dia) return { ok: false, error: "Indica el día." };
-  // El navegador envía su desfase horario (getTimezoneOffset) para guardar la hora local en UTC
-  const off = num(fd, "tz_offset") ?? 0;
-  const ajusta = (h: string) => new Date(new Date(`${dia}T${h}:00Z`).getTime() + off * 60000).toISOString();
-  const { error } = await supabase.from("eventos").insert({
-    organizacion_id: perfil.organizacion_id, proyecto_id: txt(fd, "proyecto_id"), tipo: (txt(fd, "tipo") ?? "visita") as E["tipo_evento"],
-    titulo: txt(fd, "titulo") ?? "Evento", inicio: ajusta(ini), fin: fin ? ajusta(fin) : null, lugar: txt(fd, "lugar"), notas: txt(fd, "notas"), creado_por: perfil.id,
-  });
-  revalidatePath("/agenda"); revalidatePath("/panel");
+  const f = filaEvento(fd); if (!f.ok) return f;
+  const { data, error } = await supabase.from("eventos").insert({ ...f.fila, organizacion_id: perfil.organizacion_id, creado_por: perfil.id }).select("id").single();
+  refrescarAgenda();
+  return error ? err(error) : { ok: true, id: data.id };
+}
+export async function actualizarEvento(id: string, fd: FormData): Promise<Res> {
+  const { supabase } = await getSesion();
+  const f = filaEvento(fd); if (!f.ok) return f;
+  const { error } = await supabase.from("eventos").update(f.fila).eq("id", id);
+  refrescarAgenda();
+  return err(error);
+}
+/** Mueve un evento a otro día conservando la hora y la duración. */
+export async function moverEvento(id: string, dia: string): Promise<Res> {
+  const { supabase } = await getSesion();
+  const { data: e } = await supabase.from("eventos").select("inicio, fin, todo_el_dia").eq("id", id).single();
+  if (!e) return { ok: false, error: "No se encuentra el evento." };
+  const inicio = madridAISO(dia, e.todo_el_dia ? "00:00" : horaMadrid(e.inicio));
+  const fin = e.fin ? new Date(new Date(inicio).getTime() + (new Date(e.fin).getTime() - new Date(e.inicio).getTime())).toISOString() : null;
+  const { error } = await supabase.from("eventos").update({ inicio, fin }).eq("id", id);
+  refrescarAgenda();
   return err(error);
 }
 export async function borrarEvento(id: string): Promise<Res> {
   const { supabase } = await getSesion();
   const { error } = await supabase.from("eventos").delete().eq("id", id);
-  revalidatePath("/agenda"); revalidatePath("/panel");
+  refrescarAgenda();
   return err(error);
 }
 
