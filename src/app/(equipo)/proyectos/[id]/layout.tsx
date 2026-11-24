@@ -25,7 +25,7 @@ export default async function LayoutProyecto({ children, params }: { children: R
         sub={<span className="mt-1 inline-flex flex-wrap items-center gap-2">{TIPOS_PROYECTO[p.tipo] ?? p.tipo}<EstadoProyecto estado={p.estado} /><Semaforo salud={p.salud} /></span>} />
       <Pestanas base={`/proyectos/${id}`} items={[...PESTANAS,
         { href: "/costes", label: "Costes y compras" }, { href: "/escandallos", label: "Escandallos y menú" }, { href: "/inventario", label: "Inventario y mermas" },
-        { href: "/resultados", label: "Ventas y resultados", fase: "F3" }, { href: "/informes", label: "Informes", fase: "F3" }]} />
+        { href: "/resultados", label: "Ventas y resultados" }, { href: "/informes", label: "Informes" }]} />
       {children}
     </>
   );

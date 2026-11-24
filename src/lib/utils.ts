@@ -10,7 +10,7 @@ export type Tabla<T extends keyof Database["public"]["Tables"]> = Database["publ
 // ---------- Formatos españoles ----------
 export const TZ = "Europe/Madrid";
 export const eur = (n: number | null | undefined, dec = 0) =>
-  (n ?? 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: dec, minimumFractionDigits: dec });
+  (n ?? 0).toLocaleString("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: dec, minimumFractionDigits: dec, useGrouping: "always" } as Intl.NumberFormatOptions);
 export const numero = (n: number | null | undefined, dec = 1) =>
   n == null ? "—" : n.toLocaleString("es-ES", { maximumFractionDigits: dec });
 export const fecha = (d: string | null | undefined, opc: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>

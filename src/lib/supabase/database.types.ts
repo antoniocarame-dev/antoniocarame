@@ -209,6 +209,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"cuentas_resultados": {
+                  Row: {
+                    "alquiler": number | null,"coste_mp": number | null,"negocio_id": string,"notas": string | null,"otros_gastos": number | null,"periodo": string,"personal": number | null,"suministros": number | null,"updated_at": string,"ventas_netas": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "alquiler"?: number | null,"coste_mp"?: number | null,"negocio_id": string,"notas"?: string | null,"otros_gastos"?: number | null,"periodo": string,"personal"?: number | null,"suministros"?: number | null,"updated_at"?: string,"ventas_netas"?: number | null
+                  }
+                  Update: {
+                    "alquiler"?: number | null,"coste_mp"?: number | null,"negocio_id"?: string,"notas"?: string | null,"otros_gastos"?: number | null,"periodo"?: string,"personal"?: number | null,"suministros"?: number | null,"updated_at"?: string,"ventas_netas"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cuentas_resultados_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"documento_versiones": {
                   Row: {
                     "created_at": string,"documento_id": string,"id": string,"storage_path": string,"subido_por": string | null,"tamano": number | null,"version": number
@@ -757,14 +777,14 @@ isOneToOne: false
                   ]
                 },"negocios": {
                   Row: {
-                    "aforo": number | null,"created_at": string,"direccion": string | null,"food_cost_objetivo": number,"grupo": string | null,"horarios": string | null,"id": string,"localidad": string | null,"nombre": string,"notas": string | null,"organizacion_id": string,"plantilla": number | null,"provincia": string | null,"ticket_medio": number | null,"tipo": Database["public"]['Enums']["tipo_negocio"],"updated_at": string
+                    "aforo": number | null,"created_at": string,"direccion": string | null,"food_cost_objetivo": number,"grupo": string | null,"horarios": string | null,"horas_apertura_dia": number,"id": string,"localidad": string | null,"nombre": string,"notas": string | null,"organizacion_id": string,"plantilla": number | null,"provincia": string | null,"servicios_dia": number,"ticket_medio": number | null,"tipo": Database["public"]['Enums']["tipo_negocio"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "aforo"?: number | null,"created_at"?: string,"direccion"?: string | null,"food_cost_objetivo"?: number,"grupo"?: string | null,"horarios"?: string | null,"id"?: string,"localidad"?: string | null,"nombre": string,"notas"?: string | null,"organizacion_id": string,"plantilla"?: number | null,"provincia"?: string | null,"ticket_medio"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_negocio"],"updated_at"?: string
+                    "aforo"?: number | null,"created_at"?: string,"direccion"?: string | null,"food_cost_objetivo"?: number,"grupo"?: string | null,"horarios"?: string | null,"horas_apertura_dia"?: number,"id"?: string,"localidad"?: string | null,"nombre": string,"notas"?: string | null,"organizacion_id": string,"plantilla"?: number | null,"provincia"?: string | null,"servicios_dia"?: number,"ticket_medio"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_negocio"],"updated_at"?: string
                   }
                   Update: {
-                    "aforo"?: number | null,"created_at"?: string,"direccion"?: string | null,"food_cost_objetivo"?: number,"grupo"?: string | null,"horarios"?: string | null,"id"?: string,"localidad"?: string | null,"nombre"?: string,"notas"?: string | null,"organizacion_id"?: string,"plantilla"?: number | null,"provincia"?: string | null,"ticket_medio"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_negocio"],"updated_at"?: string
+                    "aforo"?: number | null,"created_at"?: string,"direccion"?: string | null,"food_cost_objetivo"?: number,"grupo"?: string | null,"horarios"?: string | null,"horas_apertura_dia"?: number,"id"?: string,"localidad"?: string | null,"nombre"?: string,"notas"?: string | null,"organizacion_id"?: string,"plantilla"?: number | null,"provincia"?: string | null,"servicios_dia"?: number,"ticket_medio"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_negocio"],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1038,6 +1058,26 @@ isOneToOne: false
       columns: ["responsable_id"]
 isOneToOne: false
       referencedRelation: "perfiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ventas_diarias": {
+                  Row: {
+                    "cubiertos": number | null,"fecha": string,"fuente": string,"negocio_id": string,"tickets": number | null,"ventas_netas": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cubiertos"?: number | null,"fecha": string,"fuente"?: string,"negocio_id": string,"tickets"?: number | null,"ventas_netas": number
+                  }
+                  Update: {
+                    "cubiertos"?: number | null,"fecha"?: string,"fuente"?: string,"negocio_id"?: string,"tickets"?: number | null,"ventas_netas"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ventas_diarias_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
       referencedColumns: ["id"]
     }
                   ]

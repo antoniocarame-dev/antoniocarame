@@ -24,9 +24,11 @@ Supabase (Postgres, Auth, Storage, RLS) · Recharts.
 | Proyecto · Costes y compras | Subida de facturas y albaranes (PDF o foto) con lectura automática, revisión línea a línea, enlace a productos (aprende de facturas anteriores), histórico de precios, alertas de subida con platos afectados, comparativa de proveedores con ahorro anual estimado |
 | Proyecto · Inventario y mermas | Registro rápido de mermas por motivo (valoradas solas), recuentos de inventario desde el móvil que congelan el precio al cerrar, y consumo real (inicial + compras − final) frente al teórico de los escandallos según las ventas |
 | Proyecto · Estándares y formación | Procedimientos, checklists y fichas del local con versión, estado (borrador / en prueba / implantado) y responsable; hoja imprimible (checklist semanal con casillas o SOP numerado); registro de formaciones con asistencia y valoración |
+| Proyecto · Ventas y resultados | Importación de ventas diarias y por plato desde CSV del TPV (separador, fechas y decimales a la española, quita el IVA), cuenta de resultados mensual (la materia prima se calcula sola con inventarios y facturas), KPIs del sector (food cost, labour cost, prime cost, EBITDA, ticket medio, gasto por comensal, RevPASH, rotación, mermas), comparativa antes/después del proyecto con impacto anual, y volcado de los KPIs al plan de mejora |
+| Proyecto · Informes | Informes de diagnóstico, seguimiento y cierre con secciones a elegir; documento A4 listo para guardar en PDF con tu sello, KPIs con mini gráficas, resultados, antes/después, plan, estándares y lo pendiente por parte del cliente; registro de envío |
 | Proyecto · Escandallos y menú | Escandallos con merma y elaboraciones anidadas que se recalculan con el último precio de compra, food cost, margen, PVP recomendado según el objetivo del negocio, alérgenos, y matriz de ingeniería de menú (Estrella / Caballo / Puzzle / Perro) con las ventas mensuales por plato |
 
-Las pestañas de Ventas y resultados e Informes aparecen marcadas como Fase 3. Los productos, facturas y escandallos son de cada negocio; los proveedores son tuyos y comunes a todos los clientes.
+Los productos, facturas y escandallos son de cada negocio; los proveedores son tuyos y comunes a todos los clientes.
 
 ## Seguridad
 
@@ -77,4 +79,5 @@ Tipos de la base de datos: `npx supabase gen types typescript --local > src/lib/
 
 ## Próximas fases
 
-- **Fase 3**: importación de ventas, cuenta de resultados, prime cost, RevPASH, antes/después; informes PDF; horas y presupuestos; integración con TPV.
+- **Módulo interno de la consultora**: registro de horas por proyecto, presupuestos y facturación de tus servicios (enviado / aceptado / cobrado) y rentabilidad real por proyecto.
+- **Integración directa con TPV** por API, según el fabricante que use cada cliente (de momento, importación CSV).

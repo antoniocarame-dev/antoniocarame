@@ -1,7 +1,7 @@
 "use client";
 import {
   CartesianGrid, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart,
-  ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Area, AreaChart, Label,
+  ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Area, AreaChart, Label, Bar, Cell, ComposedChart, Legend,
 } from "recharts";
 
 const eje = { fontSize: 11, fill: "var(--muted-foreground)", fontFamily: "var(--font-mono)" };
@@ -133,6 +133,29 @@ export function MatrizMenu({ puntos, umbralMix, margenMedio }: {
               return p ? <div className="rounded-sm border bg-card px-2.5 py-1.5 text-xs shadow"><b>{p.nombre}</b><br />Mix {p.x.toLocaleString("es-ES")} % · margen {p.y.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</div> : null;
             }} />
         </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/** Ventas mensuales (barras) con EBITDA y food cost (líneas). */
+export function VentasMensuales({ datos }: { datos: { mes: string; ventas: number; ebitda: number | null; fc: number | null; antes: boolean }[] }) {
+  return (
+    <div className="h-72 w-full">
+      <ResponsiveContainer>
+        <ComposedChart data={datos} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
+          <CartesianGrid stroke="var(--border)" vertical={false} />
+          <XAxis dataKey="mes" tick={eje} tickLine={false} axisLine={{ stroke: "var(--border)" }} />
+          <YAxis yAxisId="e" tick={eje} tickLine={false} axisLine={false} width={52} tickFormatter={(v) => `${Math.round(v / 1000)} k€`} />
+          <YAxis yAxisId="p" orientation="right" tick={eje} tickLine={false} axisLine={false} width={40} domain={[0, 50]} tickFormatter={(v) => `${v} %`} />
+          <Bar yAxisId="e" dataKey="ventas" name="Ventas" fill="var(--chart-1)" radius={[3, 3, 0, 0]} isAnimationActive={false}>
+            {datos.map((d, i) => <Cell key={i} fill={d.antes ? "var(--chart-2)" : "var(--chart-1)"} fillOpacity={0.85} />)}
+          </Bar>
+          <Line yAxisId="e" dataKey="ebitda" name="EBITDA" stroke="var(--ok)" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} connectNulls />
+          <Line yAxisId="p" dataKey="fc" name="Food cost" stroke="var(--accent)" strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3 }} isAnimationActive={false} connectNulls />
+          <Tooltip {...tip} formatter={(v, n) => (n === "Food cost" ? `${Number(v).toLocaleString("es-ES", { maximumFractionDigits: 1 })} %` : Number(v).toLocaleString("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }))} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

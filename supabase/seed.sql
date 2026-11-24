@@ -556,3 +556,45 @@ insert into formaciones (proyecto_id, estandar_id, fecha, titulo, formador, dura
   '[{"nombre":"Elena Torres","puesto":"Maître","asistio":true},{"nombre":"Sara Vela","puesto":"Camarera","asistio":true},{"nombre":"Hugo Prieto","puesto":"Camarero","asistio":true}]',8),
  ('c0000000-0000-0000-0000-000000000003',null,'2026-11-18','Alérgenos: refresco para el turno de tarde','Antonio Caramé',1,null,
   '[{"nombre":"Sara Vela","puesto":"Camarera","asistio":true},{"nombre":"Hugo Prieto","puesto":"Camarero","asistio":false}]',null);
+
+-- =============================================================
+-- Fase 3 · Ventas diarias y cuenta de resultados · Freiduría El Varadero
+-- El proyecto empezó el 1 de julio: mayo y junio son el "antes".
+-- =============================================================
+update negocios set horas_apertura_dia = 8, servicios_dia = 2 where id = 'b0000000-0000-0000-0000-000000000001';
+
+with objetivos(mes, ventas, ticket) as (values
+  ('2026-05-01'::date, 19500, 17.2), ('2026-06-01', 21000, 17.4), ('2026-07-01', 24500, 17.5), ('2026-08-01', 26000, 17.9),
+  ('2026-09-01', 22000, 18.2), ('2026-10-01', 21832, 18.4), ('2026-11-01', 21300, 18.6)),
+dias as (
+  select d::date as fecha, date_trunc('month', d)::date as mes,
+         case extract(isodow from d) when 1 then 0 when 2 then 0.8 when 3 then 0.85 when 4 then 1.0 when 5 then 1.35 when 6 then 1.6 else 1.4 end as peso
+  from generate_series('2026-05-01'::date, '2026-11-23'::date, interval '1 day') d),
+mes_peso as (
+  select date_trunc('month', d)::date as mes,
+         sum(case extract(isodow from d) when 1 then 0 when 2 then 0.8 when 3 then 0.85 when 4 then 1.0 when 5 then 1.35 when 6 then 1.6 else 1.4 end) as total
+  from generate_series('2026-05-01'::date, '2026-11-30'::date, interval '1 day') d group by 1)
+insert into ventas_diarias (negocio_id, fecha, ventas_netas, tickets, cubiertos, fuente)
+select 'b0000000-0000-0000-0000-000000000001', d.fecha,
+       round((o.ventas * d.peso / mp.total * (1 + ((abs(hashtext(d.fecha::text)) % 13) - 6) / 100.0))::numeric, 2),
+       round(o.ventas * d.peso / mp.total / o.ticket)::int,
+       round(o.ventas * d.peso / mp.total / o.ticket * 1.9)::int,
+       'csv'
+from dias d join objetivos o on o.mes = d.mes join mes_peso mp on mp.mes = d.mes
+where d.peso > 0;
+
+insert into cuentas_resultados (negocio_id, periodo, coste_mp, personal, alquiler, suministros, otros_gastos, notas) values
+ ('b0000000-0000-0000-0000-000000000001','2026-05-01',7566,6800,1800,1050,820,'Datos de la gestoría (antes de la consultoría)'),
+ ('b0000000-0000-0000-0000-000000000001','2026-06-01',8085,7000,1800,1180,820,'Datos de la gestoría (antes de la consultoría)'),
+ ('b0000000-0000-0000-0000-000000000001','2026-07-01',9335,7900,1800,1390,860,null),
+ ('b0000000-0000-0000-0000-000000000001','2026-08-01',9724,8300,1800,1420,860,null),
+ ('b0000000-0000-0000-0000-000000000001','2026-09-01',7920,7100,1800,1210,840,null),
+ ('b0000000-0000-0000-0000-000000000001','2026-10-01',null,6900,1800,1120,840,'Materia prima calculada con inventarios de septiembre y octubre');
+
+-- ---------- Informe de ejemplo ----------
+insert into informes (id, proyecto_id, tipo, titulo, periodo_desde, periodo_hasta, introduccion, conclusiones, proximos_pasos, secciones, estado, enviado_at, enviado_a) values
+ ('94000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000001','seguimiento','Informe de seguimiento · octubre 2026','2026-10-01','2026-10-31',
+  'En octubre hemos implantado el control del aceite y la checklist de cierre, y probado el plan de producción diario de fritos. Ya tenemos el primer mes con inventarios a principio y final, así que el coste de materia prima es real y no estimado.',
+  'El food cost baja al 34,5 %, cuatro puntos y medio menos que en primavera, y el EBITDA del mes alcanza el 16,8 % sobre ventas. Aun así, el consumo real de aceite de girasol está un 49 % por encima de lo que dicen los escandallos: es la siguiente fuga a cerrar. Los domingos se sigue produciendo de más.',
+  'Medir el aceite que absorbe cada ración para ajustar la ficha. Bajar la producción del domingo al 80 % del sábado. Decidir la segunda freidora antes del 15 de diciembre.',
+  '{resumen,kpis,resultados,acciones,estandares,tareas_cliente,actas}','borrador',null,null);

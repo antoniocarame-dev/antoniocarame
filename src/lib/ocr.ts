@@ -77,18 +77,4 @@ export async function leerFactura(archivo: Blob, mime: string): Promise<{ ok: tr
   }
 }
 
-/** Normaliza un texto para comparar descripciones con nombres de producto. */
-const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w.length > 2);
-
-/** Producto más parecido por palabras en común (≥ 50 % de las palabras del producto). */
-export function emparejarProducto(descripcion: string, productos: { id: string; nombre: string }[]) {
-  const d = new Set(norm(descripcion));
-  let mejor: { id: string; score: number } | null = null;
-  for (const p of productos) {
-    const pal = norm(p.nombre);
-    if (!pal.length) continue;
-    const score = pal.filter((w) => d.has(w) || [...d].some((x) => x.startsWith(w.slice(0, 5)))).length / pal.length;
-    if (score >= 0.5 && (!mejor || score > mejor.score)) mejor = { id: p.id, score };
-  }
-  return mejor?.id ?? null;
-}
+export { emparejarProducto } from "./texto";
