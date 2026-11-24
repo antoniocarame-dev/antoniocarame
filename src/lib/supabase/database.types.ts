@@ -415,6 +415,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"facturas_emitidas": {
+                  Row: {
+                    "base": number,"concepto": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_cobro"],"fecha": string,"fecha_cobro": string | null,"id": string,"irpf_pct": number,"iva_pct": number,"negocio_id": string,"numero": string,"organizacion_id": string,"presupuesto_id": string | null,"proyecto_id": string | null,"vencimiento": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base": number,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id": string,"numero": string,"organizacion_id": string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
+                  }
+                  Update: {
+                    "base"?: number,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id"?: string,"numero"?: string,"organizacion_id"?: string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "facturas_emitidas_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "facturas_emitidas_organizacion_id_fkey"
+      columns: ["organizacion_id"]
+isOneToOne: false
+      referencedRelation: "organizaciones"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "facturas_emitidas_presupuesto_id_fkey"
+      columns: ["presupuesto_id"]
+isOneToOne: false
+      referencedRelation: "presupuestos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "facturas_emitidas_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "facturas_emitidas_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"fases": {
                   Row: {
                     "estado": Database["public"]['Enums']["estado_fase"],"fecha_fin": string | null,"fecha_inicio": string | null,"id": string,"nombre": string,"orden": number,"proyecto_id": string
@@ -540,6 +584,44 @@ isOneToOne: false
       columns: ["proyecto_id"]
 isOneToOne: false
       referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"horas": {
+                  Row: {
+                    "created_at": string,"descripcion": string | null,"fecha": string,"horas": number,"id": string,"km": number | null,"organizacion_id": string,"proyecto_id": string | null,"tipo": Database["public"]['Enums']["tipo_hora"],"usuario_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"descripcion"?: string | null,"fecha"?: string,"horas": number,"id"?: string,"km"?: number | null,"organizacion_id": string,"proyecto_id"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_hora"],"usuario_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"descripcion"?: string | null,"fecha"?: string,"horas"?: number,"id"?: string,"km"?: number | null,"organizacion_id"?: string,"proyecto_id"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_hora"],"usuario_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "horas_organizacion_id_fkey"
+      columns: ["organizacion_id"]
+isOneToOne: false
+      referencedRelation: "organizaciones"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "horas_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "horas_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "horas_usuario_id_fkey"
+      columns: ["usuario_id"]
+isOneToOne: false
+      referencedRelation: "perfiles"
       referencedColumns: ["id"]
     }
                   ]
@@ -887,6 +969,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"presupuestos": {
+                  Row: {
+                    "conceptos": NonNullable<Json>,"condiciones": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_presupuesto"],"fecha": string,"fecha_estado": string | null,"id": string,"introduccion": string | null,"iva_pct": number,"negocio_id": string,"notas": string | null,"numero": string,"organizacion_id": string,"proyecto_id": string | null,"titulo": string,"updated_at": string,"validez_dias": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"iva_pct"?: number,"negocio_id": string,"notas"?: string | null,"numero": string,"organizacion_id": string,"proyecto_id"?: string | null,"titulo": string,"updated_at"?: string,"validez_dias"?: number
+                  }
+                  Update: {
+                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"iva_pct"?: number,"negocio_id"?: string,"notas"?: string | null,"numero"?: string,"organizacion_id"?: string,"proyecto_id"?: string | null,"titulo"?: string,"updated_at"?: string,"validez_dias"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "presupuestos_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "presupuestos_organizacion_id_fkey"
+      columns: ["organizacion_id"]
+isOneToOne: false
+      referencedRelation: "organizaciones"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "presupuestos_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "proyectos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "presupuestos_proyecto_id_fkey"
+      columns: ["proyecto_id"]
+isOneToOne: false
+      referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"productos": {
                   Row: {
                     "activo": boolean,"alergenos": (string)[],"created_at": string,"familia": string,"formato": string | null,"id": string,"merma_pct": number,"negocio_id": string,"nombre": string,"proveedor_habitual_id": string | null,"unidad": Database["public"]['Enums']["unidad_compra"]
@@ -1206,7 +1326,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_estandar": "borrador"|"en_prueba"|"implantado","estado_factura": "pendiente"|"validada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_inventario": "abierto"|"cerrado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","motivo_merma": "caducidad"|"deterioro"|"sobreproduccion"|"error_elaboracion"|"devolucion"|"rotura"|"otro","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_documento_compra": "factura"|"albaran","tipo_escandallo": "plato"|"elaboracion","tipo_estandar": "sop"|"checklist"|"ficha"|"manual","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe","unidad_compra": "kg"|"l"|"ud"
+            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_cobro": "pendiente"|"cobrada","estado_estandar": "borrador"|"en_prueba"|"implantado","estado_factura": "pendiente"|"validada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_inventario": "abierto"|"cerrado","estado_presupuesto": "borrador"|"enviado"|"aceptado"|"rechazado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","motivo_merma": "caducidad"|"deterioro"|"sobreproduccion"|"error_elaboracion"|"devolucion"|"rotura"|"otro","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_documento_compra": "factura"|"albaran","tipo_escandallo": "plato"|"elaboracion","tipo_estandar": "sop"|"checklist"|"ficha"|"manual","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_hora": "visita"|"oficina"|"desplazamiento"|"formacion"|"reunion"|"otro","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe","unidad_compra": "kg"|"l"|"ud"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1326,7 +1446,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_estandar": ["borrador", "en_prueba", "implantado"],"estado_factura": ["pendiente", "validada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_inventario": ["abierto", "cerrado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"motivo_merma": ["caducidad", "deterioro", "sobreproduccion", "error_elaboracion", "devolucion", "rotura", "otro"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_documento_compra": ["factura", "albaran"],"tipo_escandallo": ["plato", "elaboracion"],"tipo_estandar": ["sop", "checklist", "ficha", "manual"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"],"unidad_compra": ["kg", "l", "ud"]
+            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_cobro": ["pendiente", "cobrada"],"estado_estandar": ["borrador", "en_prueba", "implantado"],"estado_factura": ["pendiente", "validada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_inventario": ["abierto", "cerrado"],"estado_presupuesto": ["borrador", "enviado", "aceptado", "rechazado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"motivo_merma": ["caducidad", "deterioro", "sobreproduccion", "error_elaboracion", "devolucion", "rotura", "otro"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_documento_compra": ["factura", "albaran"],"tipo_escandallo": ["plato", "elaboracion"],"tipo_estandar": ["sop", "checklist", "ficha", "manual"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_hora": ["visita", "oficina", "desplazamiento", "formacion", "reunion", "otro"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"],"unidad_compra": ["kg", "l", "ud"]
           }
         }
 } as const

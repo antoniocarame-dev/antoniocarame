@@ -49,7 +49,7 @@ export async function cambiarEstadoProyecto(id: string, estado: E["estado_proyec
 export async function actualizarFinanzas(id: string, fd: FormData): Promise<Res> {
   const { supabase } = await getSesion();
   const { error } = await supabase.from("proyecto_finanzas").upsert({
-    proyecto_id: id, horas_presupuestadas: num(fd, "horas_presupuestadas") ?? 0, horas_consumidas: num(fd, "horas_consumidas") ?? 0,
+    proyecto_id: id, horas_presupuestadas: num(fd, "horas_presupuestadas") ?? 0,
     importe_presupuestado: num(fd, "importe_presupuestado") ?? 0, tarifa_hora: num(fd, "tarifa_hora"),
   });
   revalidatePath(`/proyectos/${id}`);

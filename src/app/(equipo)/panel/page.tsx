@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Kpi, Semaforo, EstadoProyecto, Progreso } from "@/components/piezas";
 import { Vacio } from "@/components/ui/vacio";
 import { requiereEquipo } from "@/lib/sesion";
-import { estadoKpi, eur, fecha, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO } from "@/lib/utils";
+import { estadoKpi, eur, fecha, hoyISO, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO } from "@/lib/utils";
 
 export const metadata = { title: "Panel" };
 
@@ -24,6 +24,9 @@ export default async function Panel() {
     supabase.from("v_productos_precio").select("id, nombre, unidad, precio_actual, precio_anterior, variacion_pct, fecha_precio, negocio_id").gte("variacion_pct", 5).gte("fecha_precio", hace60).order("variacion_pct", { ascending: false }).limit(8),
     supabase.from("facturas").select("negocio_id").eq("estado", "pendiente"),
   ]);
+  const { data: porCobrar } = esAdmin ? await supabase.from("facturas_emitidas").select("base, iva_pct, irpf_pct, vencimiento").eq("estado", "pendiente") : { data: [] };
+  const cobroPend = (porCobrar ?? []).reduce((s, f) => s + Number(f.base) * (1 + Number(f.iva_pct) / 100 - Number(f.irpf_pct) / 100), 0);
+  const cobroVencido = (porCobrar ?? []).filter((f) => f.vencimiento && f.vencimiento < hoyISO()).length;
   const proyectoDeNegocio = (nid: string | null) => (proyectos ?? []).find((p) => p.negocio_id === nid && p.estado !== "cerrado");
   const nombre = (id: string | null) => perfiles?.find((p) => p.id === id)?.nombre ?? "—";
   const activos = (proyectos ?? []).filter((p) => p.estado !== "cerrado");
@@ -48,7 +51,7 @@ export default async function Panel() {
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Proyectos activos" valor={activos.length} ayuda={columnas.map((c) => `${activos.filter((p) => p.estado === c).length} ${ESTADOS_PROYECTO[c].toLowerCase()}`).join(" · ")} />
         {esAdmin
-          ? <Kpi label="Horas consumidas" valor={numero(horasC, 0)} ayuda={`de ${numero(horasP, 0)} presupuestadas · ${facturable.toLocaleString("es-ES")} € en cartera`} tono={horasC > horasP ? "bad" : undefined} />
+          ? <Kpi label="Pendiente de cobro" valor={eur(cobroPend)} tono={cobroVencido ? "bad" : undefined} ayuda={`${cobroVencido ? `${cobroVencido} facturas vencidas · ` : ""}${numero(horasC, 0)} de ${numero(horasP, 0)} h consumidas · ${eur(facturable)} en cartera`} />
           : <Kpi label="Tareas abiertas" valor={activos.reduce((a, p) => a + (p.tareas_total ?? 0) - (p.tareas_hechas ?? 0), 0)} />}
         <Kpi label="Tareas vencidas" valor={vencidas} tono={vencidas ? "bad" : "ok"} ayuda="sin cerrar y fuera de fecha" />
         <Kpi label="Alertas" valor={alertas.length + (subidas?.length ?? 0)} tono={alertas.length + (subidas?.length ?? 0) ? "warn" : "ok"} ayuda={`${alertas.length} KPIs fuera de objetivo · ${subidas?.length ?? 0} subidas de precio · ${porRevisar?.length ?? 0} facturas por revisar`} />

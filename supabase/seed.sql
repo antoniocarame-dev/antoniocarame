@@ -141,7 +141,7 @@ from organizaciones o, (values
 ) as v(id,neg,cod,tit,tipo,est,sal,resp,ini,fin,obj,alc);
 
 insert into proyecto_finanzas (proyecto_id, horas_presupuestadas, horas_consumidas, importe_presupuestado, tarifa_hora) values
- ('c0000000-0000-0000-0000-000000000001', 120, 96, 7200, 60),
+ ('c0000000-0000-0000-0000-000000000001', 120, 96, 6200, 60),
  ('c0000000-0000-0000-0000-000000000002', 90, 14, 5400, 60),
  ('c0000000-0000-0000-0000-000000000003', 70, 61, 4200, 60),
  ('c0000000-0000-0000-0000-000000000004', 30, 34, 1800, 60);
@@ -598,3 +598,56 @@ insert into informes (id, proyecto_id, tipo, titulo, periodo_desde, periodo_hast
   'El food cost baja al 34,5 %, cuatro puntos y medio menos que en primavera, y el EBITDA del mes alcanza el 16,8 % sobre ventas. Aun así, el consumo real de aceite de girasol está un 49 % por encima de lo que dicen los escandallos: es la siguiente fuga a cerrar. Los domingos se sigue produciendo de más.',
   'Medir el aceite que absorbe cada ración para ajustar la ficha. Bajar la producción del domingo al 80 % del sábado. Decidir la segunda freidora antes del 15 de diciembre.',
   '{resumen,kpis,resultados,acciones,estandares,tareas_cliente,actas}','borrador',null,null);
+
+-- =============================================================
+-- Módulo interno: horas, presupuestos y facturas emitidas
+-- =============================================================
+insert into horas (organizacion_id, proyecto_id, usuario_id, fecha, horas, tipo, descripcion, km)
+select o.id, v.p::uuid, 'a0000000-0000-0000-0000-000000000001', v.ini::date + (n * v.paso), v.h,
+       (array['visita','oficina','oficina','reunion','desplazamiento','formacion'])[1 + n % 6]::tipo_hora,
+       (array['Visita al local','Análisis y escandallos','Preparación de documentación','Reunión con la propiedad','Desplazamiento','Sesión con el equipo'])[1 + n % 6],
+       case when n % 6 in (0, 4) then v.km end
+from organizaciones o, (values
+  ('c0000000-0000-0000-0000-000000000001','2026-07-01', 4, 32, 3.0, 24),
+  ('c0000000-0000-0000-0000-000000000002','2026-11-04', 3,  7, 2.0, 46),
+  ('c0000000-0000-0000-0000-000000000003','2026-03-02', 8, 30, 2.0, 18),
+  ('c0000000-0000-0000-0000-000000000004','2026-02-15', 6, 17, 2.0, 24)
+) as v(p, ini, paso, filas, h, km), generate_series(0, 40) n
+where n < v.filas;
+insert into horas (organizacion_id, proyecto_id, usuario_id, fecha, horas, tipo, descripcion)
+select o.id, 'c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', '2026-11-20', 1, 'oficina', 'Revisión de reseñas' from organizaciones o;
+insert into horas (organizacion_id, proyecto_id, usuario_id, fecha, horas, tipo, descripcion)
+select o.id, null, 'a0000000-0000-0000-0000-000000000001', d::date, 2, 'otro', 'Trabajo comercial y propuestas'
+from organizaciones o, generate_series('2026-09-01'::date, '2026-11-20'::date, interval '7 days') d;
+
+insert into presupuestos (organizacion_id, negocio_id, proyecto_id, numero, fecha, titulo, introduccion, conceptos, condiciones, estado, fecha_estado) select o.id, v.n::uuid, v.p::uuid, v.num, v.f::date, v.t, v.intro, v.c::jsonb, v.cond, v.e::estado_presupuesto, v.fe::date from organizaciones o, (values
+ ('b0000000-0000-0000-0000-000000000003','c0000000-0000-0000-0000-000000000003','P-2026-003','2026-02-20','Estandarización de sala y formación de equipo',
+  'Proponemos escribir los procedimientos de sala y formar al equipo para que el servicio no dependa de quién esté de turno.',
+  '[{"descripcion":"Diagnóstico de sala y experiencia de cliente","cantidad":1,"unidad":"servicio","precio":900},{"descripcion":"Redacción de SOPs y manual de bienvenida","cantidad":1,"unidad":"servicio","precio":1500},{"descripcion":"Sesiones de formación (2 h)","cantidad":6,"unidad":"sesión","precio":250},{"descripcion":"Seguimiento mensual","cantidad":3,"unidad":"mes","precio":100}]',
+  '50 % a la aceptación y 50 % a la entrega del manual. Transferencia a 15 días.','aceptado','2026-02-27'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000004','P-2026-002','2026-02-10','Puesta en marcha de terraza de verano',null,
+  '[{"descripcion":"Carta de terraza, distribución de mesas y cuadrante","cantidad":1,"unidad":"servicio","precio":1800}]','Pago único a la entrega.','aceptado','2026-02-14'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000001','P-2026-007','2026-06-18','Control de costes y reorganización de cocina',
+  'Hemos visto que el local está lleno pero el margen no acompaña. Proponemos medir dónde se va el dinero y cambiar la forma de producir y comprar.',
+  '[{"descripcion":"Diagnóstico de cocina, compras y almacén","cantidad":1,"unidad":"servicio","precio":1600},{"descripcion":"Escandallo de los 20 platos más vendidos","cantidad":20,"unidad":"plato","precio":45},{"descripcion":"Plan de acción e implantación (visitas semanales)","cantidad":16,"unidad":"semana","precio":200},{"descripcion":"Formación del equipo de cocina","cantidad":2,"unidad":"sesión","precio":250}]',
+  'Tres pagos: julio, septiembre y noviembre. Transferencia a 15 días.','aceptado','2026-06-25'),
+ ('b0000000-0000-0000-0000-000000000002','c0000000-0000-0000-0000-000000000002','P-2026-011','2026-10-22','Rediseño de carta e ingeniería de menú',null,
+  '[{"descripcion":"Auditoría de carta y cocina","cantidad":1,"unidad":"servicio","precio":1200},{"descripcion":"Escandallos e ingeniería de menú","cantidad":1,"unidad":"servicio","precio":2400},{"descripcion":"Nueva carta y formación de sala","cantidad":1,"unidad":"servicio","precio":1800}]',
+  '50 % al inicio y 50 % con la carta nueva.','aceptado','2026-10-30'),
+ ('b0000000-0000-0000-0000-000000000002',null,'P-2026-012','2026-11-18','Formación de sala en venta sugerida',null,
+  '[{"descripcion":"Sesiones de formación (2 h)","cantidad":4,"unidad":"sesión","precio":250},{"descripcion":"Material y seguimiento","cantidad":1,"unidad":"servicio","precio":200}]','Pago a la finalización.','enviado','2026-11-18'),
+ ('b0000000-0000-0000-0000-000000000003',null,'P-2026-013','2026-11-23','Auditoría APPCC anual',null,
+  '[{"descripcion":"Auditoría APPCC y revisión de registros","cantidad":1,"unidad":"servicio","precio":650},{"descripcion":"Informe y plan de corrección","cantidad":1,"unidad":"servicio","precio":250}]',null,'borrador',null)
+) as v(n, p, num, f, t, intro, c, cond, e, fe);
+
+insert into facturas_emitidas (organizacion_id, negocio_id, proyecto_id, presupuesto_id, numero, concepto, fecha, vencimiento, base, estado, fecha_cobro)
+select o.id, v.n::uuid, v.p::uuid, (select id from presupuestos where numero = v.pre), v.num, v.con, v.f::date, v.f::date + 15, v.b, v.e::estado_cobro, v.fc::date
+from organizaciones o, (values
+ ('b0000000-0000-0000-0000-000000000003','c0000000-0000-0000-0000-000000000003','P-2026-003','F-2026-004','Estandarización de sala · 50 % inicial','2026-03-02',2100,'cobrada','2026-03-12'),
+ ('b0000000-0000-0000-0000-000000000003','c0000000-0000-0000-0000-000000000003','P-2026-003','F-2026-011','Estandarización de sala · 50 % entrega','2026-06-16',2100,'cobrada','2026-07-03'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000004','P-2026-002','F-2026-009','Terraza de verano','2026-05-31',1800,'cobrada','2026-06-20'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000001','P-2026-007','F-2026-013','Control de costes · 1.er pago','2026-07-01',2000,'cobrada','2026-07-14'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000001','P-2026-007','F-2026-018','Control de costes · 2.º pago','2026-09-01',2100,'cobrada','2026-09-22'),
+ ('b0000000-0000-0000-0000-000000000001','c0000000-0000-0000-0000-000000000001','P-2026-007','F-2026-024','Control de costes · 3.er pago','2026-11-02',2100,'pendiente',null),
+ ('b0000000-0000-0000-0000-000000000002','c0000000-0000-0000-0000-000000000002','P-2026-011','F-2026-023','Rediseño de carta · 50 % inicial','2026-11-04',2700,'pendiente',null)
+) as v(n, p, pre, num, con, f, b, e, fc);

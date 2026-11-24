@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { BookOpen, Building2, CalendarDays, FolderKanban, LayoutDashboard, LogOut, Moon, Settings, Sun, Menu, X } from "lucide-react";
+import { BookOpen, Briefcase, Building2, CalendarDays, FolderKanban, LayoutDashboard, LogOut, Moon, Settings, Sun, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: "/negocios", label: "Negocios", icon: Building2 },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/biblioteca", label: "Biblioteca", icon: BookOpen },
+  { href: "/consultora", label: "Consultora", icon: Briefcase },
   { href: "/ajustes", label: "Ajustes", icon: Settings },
 ];
 

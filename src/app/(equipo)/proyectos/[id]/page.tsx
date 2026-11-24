@@ -9,6 +9,8 @@ import { BotonAccion, SelectAccion } from "@/components/boton-accion";
 import { Kpi, Progreso } from "@/components/piezas";
 import { getSesion, puedeEditarProyecto } from "@/lib/sesion";
 import * as A from "@/app/acciones/proyectos";
+import { registrarHoras } from "@/app/acciones/consultora";
+import { FormHoras } from "@/components/consultora/form-horas";
 import { ESTADOS_PROYECTO, SALUD, TIPOS_PROYECTO, eur, estadoKpi, fecha, numero, opciones, valorKpi } from "@/lib/utils";
 
 export default async function Resumen({ params }: { params: Promise<{ id: string }> }) {
@@ -134,7 +136,7 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
               <DialogoForm titulo="Presupuesto y horas" trigger={<Button variant="outline" size="sm"><Pencil />Editar</Button>}
                 action={async (fd) => { "use server"; return A.actualizarFinanzas(pid, fd); }}>
                 <Campo label="Horas presupuestadas"><Input name="horas_presupuestadas" type="number" step="0.5" defaultValue={fin.horas_presupuestadas} /></Campo>
-                <Campo label="Horas consumidas"><Input name="horas_consumidas" type="number" step="0.5" defaultValue={fin.horas_consumidas} /></Campo>
+                <input type="hidden" name="horas_consumidas" value={fin.horas_consumidas} />
                 <Campo label="Importe presupuestado (€)"><Input name="importe_presupuestado" type="number" step="0.01" defaultValue={fin.importe_presupuestado} /></Campo>
                 <Campo label="Tarifa interna (€/h)"><Input name="tarifa_hora" type="number" step="0.01" defaultValue={fin.tarifa_hora ?? ""} /></Campo>
               </DialogoForm>
@@ -147,7 +149,10 @@ export default async function Resumen({ params }: { params: Promise<{ id: string
               <dt className="text-muted-foreground">Margen</dt><dd className={"tnum text-right font-semibold " + (fin.importe_presupuestado - costeHoras < 0 ? "text-bad" : "text-ok")}>{eur(fin.importe_presupuestado - costeHoras)}</dd>
               <dt className="text-muted-foreground">€ por hora real</dt><dd className="tnum text-right font-medium">{fin.horas_consumidas ? eur(fin.importe_presupuestado / fin.horas_consumidas, 2) : "—"}</dd>
             </dl>
-            <p className="mt-3 text-xs text-muted-foreground">Solo tú ves este bloque.</p>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">Solo tú ves este bloque. Horas desde el registro de horas.</p>
+              <DialogoForm titulo="Registrar horas" trigger={<Button size="sm" variant="outline"><Plus />Horas</Button>} action={async (fd) => { "use server"; return registrarHoras(fd); }}><FormHoras proyectos={[]} proyectoFijo={pid} /></DialogoForm>
+            </div>
           </Card>
         )}
 

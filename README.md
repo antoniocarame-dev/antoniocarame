@@ -26,6 +26,7 @@ Supabase (Postgres, Auth, Storage, RLS) · Recharts.
 | Proyecto · Estándares y formación | Procedimientos, checklists y fichas del local con versión, estado (borrador / en prueba / implantado) y responsable; hoja imprimible (checklist semanal con casillas o SOP numerado); registro de formaciones con asistencia y valoración |
 | Proyecto · Ventas y resultados | Importación de ventas diarias y por plato desde CSV del TPV (separador, fechas y decimales a la española, quita el IVA), cuenta de resultados mensual (la materia prima se calcula sola con inventarios y facturas), KPIs del sector (food cost, labour cost, prime cost, EBITDA, ticket medio, gasto por comensal, RevPASH, rotación, mermas), comparativa antes/después del proyecto con impacto anual, y volcado de los KPIs al plan de mejora |
 | Proyecto · Informes | Informes de diagnóstico, seguimiento y cierre con secciones a elegir; documento A4 listo para guardar en PDF con tu sello, KPIs con mini gráficas, resultados, antes/después, plan, estándares y lo pendiente por parte del cliente; registro de envío |
+| Consultora | Registro de horas (por proyecto o interno, con kilómetros), presupuestos con conceptos y PDF para firmar que al aceptarse crean el proyecto, registro de facturas emitidas con IVA e IRPF y control de cobros y vencimientos, y rentabilidad real por proyecto (ingresos, coste de horas, margen y € por hora) |
 | Proyecto · Escandallos y menú | Escandallos con merma y elaboraciones anidadas que se recalculan con el último precio de compra, food cost, margen, PVP recomendado según el objetivo del negocio, alérgenos, y matriz de ingeniería de menú (Estrella / Caballo / Puzzle / Perro) con las ventas mensuales por plato |
 
 Los productos, facturas y escandallos son de cada negocio; los proveedores son tuyos y comunes a todos los clientes.
@@ -79,5 +80,4 @@ Tipos de la base de datos: `npx supabase gen types typescript --local > src/lib/
 
 ## Próximas fases
 
-- **Módulo interno de la consultora**: registro de horas por proyecto, presupuestos y facturación de tus servicios (enviado / aceptado / cobrado) y rentabilidad real por proyecto.
 - **Integración directa con TPV** por API, según el fabricante que use cada cliente (de momento, importación CSV).
