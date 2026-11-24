@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 import { getSesion } from "@/lib/sesion";
 import { err, txt, type Res } from "./comun";
 import { SECCIONES_INFORME, POR_TIPO } from "@/lib/informes";
+import { cargarInforme } from "@/lib/informe-datos";
+import { redactarInforme } from "@/lib/redactar-informe";
 import type { Database } from "@/lib/supabase/database.types";
 type E = Database["public"]["Enums"];
 
@@ -42,5 +44,18 @@ export async function borrarInforme(proyecto_id: string, id: string): Promise<Re
   const { supabase } = await getSesion();
   const { error } = await supabase.from("informes").delete().eq("id", id);
   revalidatePath(`/proyectos/${proyecto_id}/informes`);
+  return err(error);
+}
+
+/** Redacta con IA la introducción, las conclusiones y los próximos pasos a partir de los datos del proyecto. */
+export async function redactarConIA(proyecto_id: string, id: string, indicaciones: string | null): Promise<Res> {
+  const { supabase } = await getSesion();
+  const d = await cargarInforme(supabase, id);
+  if (!d || d.inf.proyecto_id !== proyecto_id) return { ok: false, error: "No se encuentra el informe." };
+  const r = await redactarInforme(d, indicaciones?.trim() || null);
+  if (!r.ok) return r;
+  const { error } = await supabase.from("informes").update(r.datos).eq("id", id);
+  revalidatePath(`/proyectos/${proyecto_id}/informes`, "layout");
+  revalidatePath(`/informe/${id}`);
   return err(error);
 }

@@ -11,6 +11,9 @@ import { getSesion } from "@/lib/sesion";
 import { SECCIONES_INFORME } from "@/lib/informes";
 import { guardarInforme, marcarEnviado, borrarInforme } from "@/app/acciones/informes";
 import { fecha } from "@/lib/utils";
+import { EnviarInforme, RedactarIA } from "@/components/informes/acciones-informe";
+
+export const maxDuration = 60;
 
 export default async function EditarInforme({ params }: { params: Promise<{ id: string; informe: string }> }) {
   const { id, informe } = await params;
@@ -22,13 +25,13 @@ export default async function EditarInforme({ params }: { params: Promise<{ id: 
   if (!i) notFound();
   const { data: contactos } = await supabase.from("contactos").select("nombre, email, principal").eq("negocio_id", p!.negocio_id).order("principal", { ascending: false });
   const destino = contactos?.find((c) => c.email);
-  const asunto = encodeURIComponent(i.titulo);
-  const cuerpo = encodeURIComponent(`Hola ${destino?.nombre?.split(" ")[0] ?? ""}:\n\nTe adjunto ${i.titulo.toLowerCase()}.\n\nUn saludo.`);
+  const textoCuerpo = `Hola ${destino?.nombre?.split(" ")[0] ?? ""}:\n\nTe adjunto ${i.titulo.charAt(0).toLowerCase() + i.titulo.slice(1)}.\n\nUn saludo.`;
 
   return (
     <div className="grid max-w-4xl gap-4">
       <Link href={`/proyectos/${id}/informes`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Informes</Link>
-      <FormAccion reset={false} action={async (fd) => { "use server"; return guardarInforme(id, informe, fd); }}>
+      <RedactarIA proyectoId={id} informeId={informe} hayTexto={!!(i.introduccion || i.conclusiones || i.proximos_pasos)} />
+      <FormAccion key={i.updated_at} reset={false} action={async (fd) => { "use server"; return guardarInforme(id, informe, fd); }}>
         <div className="grid gap-4">
           <Card>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -51,7 +54,7 @@ export default async function EditarInforme({ params }: { params: Promise<{ id: 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <BotonAccion variant="destructive" size="default" confirmar="¿Borrar el informe?" accion={async () => { "use server"; const r = await borrarInforme(id, informe); if (r.ok) redirect(`/proyectos/${id}/informes`); return r; }}>Borrar</BotonAccion>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline"><a href={`/informe/${informe}`} target="_blank" rel="noreferrer"><ExternalLink />Ver e imprimir</a></Button>
+              <Button asChild variant="outline"><a href={`/informe/${informe}`} target="_blank" rel="noreferrer"><ExternalLink />Vista web</a></Button>
               <Button type="submit">Guardar</Button>
             </div>
           </div>
@@ -59,11 +62,8 @@ export default async function EditarInforme({ params }: { params: Promise<{ id: 
       </FormAccion>
       <Card>
         <CardHeader><CardTitle>Envío</CardTitle>{i.estado === "enviado" ? <Badge tono="ok">Enviado el {fecha(i.enviado_at)}{i.enviado_a ? ` a ${i.enviado_a}` : ""}</Badge> : <Badge tono="warn">Sin enviar</Badge>}</CardHeader>
-        <ol className="mb-3 list-decimal pl-5 text-sm text-muted-foreground">
-          <li>Abre «Ver e imprimir» y guarda el PDF.</li>
-          <li>Envíalo desde tu correo{destino ? <> a <a className="text-primary-ink underline" href={`mailto:${destino.email}?subject=${asunto}&body=${cuerpo}`}>{destino.nombre} ({destino.email})</a></> : ""} con el PDF adjunto.</li>
-          <li>Márcalo como enviado para llevar el registro.</li>
-        </ol>
+        <p className="mb-3 text-sm text-muted-foreground">Guarda los cambios antes de enviar. En el móvil, «Enviar por correo» abre Correo (o WhatsApp) con el PDF ya adjunto{destino ? <>; escribe a <b>{destino.nombre}</b> ({destino.email})</> : ""}. En el ordenador, descarga el PDF y abre un correo nuevo para adjuntarlo.</p>
+        <div className="mb-4"><EnviarInforme informeId={informe} email={destino?.email ?? null} asunto={i.titulo} cuerpo={textoCuerpo} /></div>
         <BotonAccion variant={i.estado === "enviado" ? "outline" : "default"} size="default" accion={async () => { "use server"; return marcarEnviado(id, informe, i.estado !== "enviado", destino?.email ?? null); }}>
           {i.estado === "enviado" ? "Volver a borrador" : "Marcar como enviado"}
         </BotonAccion>

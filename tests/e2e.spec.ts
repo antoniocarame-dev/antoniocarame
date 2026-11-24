@@ -177,6 +177,23 @@ test.describe("Recorridos principales", () => {
     expect(pdf.byteLength).toBeGreaterThan(20_000);
   });
 
+  test("informe: PDF descargable, enviar por correo y redactar con IA", async ({ page }) => {
+    const r = await page.request.get("/exportar/informe/94000000-0000-0000-0000-000000000001");
+    expect(r.status()).toBe(200);
+    expect(r.headers()["content-type"]).toBe("application/pdf");
+    expect(r.headers()["content-disposition"]).toContain("informe-freiduria-el-varadero");
+    expect((await r.body()).subarray(0, 4).toString()).toBe("%PDF");
+
+    await page.goto(`${P}/informes/94000000-0000-0000-0000-000000000001`);
+    await expect(page.getByRole("button", { name: "Enviar por correo" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Descargar PDF" })).toHaveAttribute("href", "/exportar/informe/94000000-0000-0000-0000-000000000001");
+    // Con texto ya escrito pide confirmación antes de sustituirlo
+    await page.getByRole("button", { name: "Redactar", exact: true }).click();
+    await page.getByRole("button", { name: /Sustituirá el texto actual/ }).click();
+    // Sin clave de la API, explica qué falta (con clave, redacta)
+    if (!process.env.ANTHROPIC_API_KEY) await expect(page.getByRole("alert").filter({ hasText: "ANTHROPIC_API_KEY" })).toBeVisible({ timeout: 15_000 });
+  });
+
   test("plantillas predefinidas: instalar, auditar con sí/no, medición y texto, y anotar necesidades", async ({ page }) => {
     await page.goto("/biblioteca");
     await page.getByRole("button", { name: "Instalar plantillas predefinidas" }).click();

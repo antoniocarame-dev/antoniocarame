@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { BotonImprimir } from "@/components/imprimir";
 import { RadarAreas } from "@/components/graficos";
 import { requiereEquipo } from "@/lib/sesion";
-import { cargarEscandallos } from "@/lib/negocio";
-import { agregar, cuentaResultados, KPIS_SECTOR } from "@/lib/resultados";
-import { AREAS, DAFO, MUDAS, PDCA, contenidoAuditoria, estadoKpi, eur, fecha, mes, numero, valorKpi } from "@/lib/utils";
+import { KPIS_SECTOR } from "@/lib/resultados";
+import { cargarInforme, TITULO_TIPO } from "@/lib/informe-datos";
+import { AREAS, DAFO, MUDAS, PDCA, contenidoAuditoria, eur, fecha, mes, numero, valorKpi } from "@/lib/utils";
 
 export const metadata = { title: "Informe" };
 
@@ -28,41 +28,12 @@ const H2 = ({ n, children }: { n: number; children: React.ReactNode }) =>
 export default async function Informe({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, perfil } = await requiereEquipo();
-  const { data: inf } = await supabase.from("informes").select("*").eq("id", id).maybeSingle();
-  if (!inf) notFound();
-  const pid = inf.proyecto_id;
-  const desde = inf.periodo_desde ?? "1900-01-01", hasta = inf.periodo_hasta ?? "2999-12-31";
-  const [{ data: p }, { data: org }, { data: fases }, { data: tareas }, { data: kpis }, { data: auditorias }, { data: hallazgos }, { data: acciones }, { data: estandares }, { data: formaciones }, { data: actas }] = await Promise.all([
-    supabase.from("proyectos").select("*, negocios(*)").eq("id", pid).single(),
-    supabase.from("organizaciones").select("nombre").single(),
-    supabase.from("fases").select("*").eq("proyecto_id", pid).order("orden"),
-    supabase.from("tareas").select("*").eq("proyecto_id", pid),
-    supabase.from("kpis").select("*, kpi_valores(periodo, valor)").eq("proyecto_id", pid).eq("visible_cliente", true),
-    supabase.from("auditorias").select("area, fecha, puntuacion, titulo").eq("proyecto_id", pid).eq("visible_cliente", true).order("fecha"),
-    supabase.from("hallazgos").select("*").eq("proyecto_id", pid).eq("visible_cliente", true).order("impacto", { ascending: false }),
-    supabase.from("acciones").select("*").eq("proyecto_id", pid).eq("visible_cliente", true).order("fecha_objetivo"),
-    supabase.from("estandares").select("*").eq("proyecto_id", pid).eq("visible_cliente", true),
-    supabase.from("formaciones").select("*").eq("proyecto_id", pid).eq("visible_cliente", true).gte("fecha", desde).lte("fecha", hasta).order("fecha"),
-    supabase.from("actas").select("*").eq("proyecto_id", pid).eq("visible_cliente", true).gte("fecha", desde).lte("fecha", hasta).order("fecha"),
-  ]);
-  if (!p?.negocios) notFound();
-  const neg = p.negocios;
-  const sec = new Set(inf.secciones);
+  const d = await cargarInforme(supabase, id);
+  if (!d) notFound();
+  const { inf, p, neg, org, sec, tareas, kpis, auditorias, hallazgos, acciones, estandares, formaciones, actas, enPeriodo, A1, D1, porArea, radar, hechas, pendCliente } = d;
+  const costes = d.costes;
   let n = 0;
   const num = () => ++n;
-
-  const meses = sec.has("resultados") ? await cuentaResultados(supabase, neg) : [];
-  const completos = meses.filter((m) => m.completo);
-  const enPeriodo = completos.filter((m) => m.periodo >= desde.slice(0, 7) + "-01" && m.periodo <= hasta);
-  const A1 = p.fecha_inicio ? agregar(completos.filter((m) => m.periodo < p.fecha_inicio!)) : null;
-  const D1 = agregar((p.fecha_inicio ? completos.filter((m) => m.periodo >= p.fecha_inicio!) : completos).slice(-3));
-  const costes = sec.has("costes") ? await cargarEscandallos(pid) : null;
-
-  const porArea = new Map<string, { actual: number; inicial: number }>();
-  (auditorias ?? []).filter((a) => a.puntuacion != null).forEach((a) => { const pr = porArea.get(a.area); porArea.set(a.area, { inicial: pr?.inicial ?? Number(a.puntuacion), actual: Number(a.puntuacion) }); });
-  const radar = [...porArea].map(([a, v]) => ({ area: AREAS[a as keyof typeof AREAS], ...v }));
-  const hechas = (tareas ?? []).filter((t) => t.estado === "hecha").length;
-  const pendCliente = (tareas ?? []).filter((t) => t.responsable_externo && t.estado !== "hecha");
 
   return (
     <main className="mx-auto max-w-[800px] bg-white p-10 text-[14px] leading-relaxed text-[#1c2521] print:max-w-none print:p-0" style={{ colorScheme: "light" }}>
@@ -73,7 +44,7 @@ export default async function Informe({ params }: { params: Promise<{ id: string
       <header className="mb-8 border-b-2 border-[#1c2521] pb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#8a4a14]">{{ diagnostico: "Informe de diagnóstico", seguimiento: "Informe de seguimiento", cierre: "Informe de cierre" }[inf.tipo]}</p>
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#8a4a14]">{TITULO_TIPO[inf.tipo]}</p>
             <h1 className="mt-2 text-balance font-mono text-[28px] font-bold leading-tight">{inf.titulo}</h1>
             <p className="mt-2 text-[15px]">{neg.nombre} · {p.titulo}</p>
             <p className="text-[13px] text-[#5b615c]">Periodo: {fecha(inf.periodo_desde)} – {fecha(inf.periodo_hasta)} · Emitido el {fecha(new Date().toISOString())}</p>
@@ -88,7 +59,7 @@ export default async function Informe({ params }: { params: Promise<{ id: string
         <section>
           <H2 n={num()}>Situación del proyecto</H2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded border border-[#e4dcc9] p-3"><p className="text-[11px] uppercase tracking-wider text-[#5b615c]">Fase actual</p><p className="font-mono text-lg font-bold">{fases?.find((f) => f.estado === "en_curso")?.nombre ?? "—"}</p></div>
+            <div className="rounded border border-[#e4dcc9] p-3"><p className="text-[11px] uppercase tracking-wider text-[#5b615c]">Fase actual</p><p className="font-mono text-lg font-bold">{d.faseActual ?? "—"}</p></div>
             <div className="rounded border border-[#e4dcc9] p-3"><p className="text-[11px] uppercase tracking-wider text-[#5b615c]">Avance de tareas</p><p className="font-mono text-lg font-bold">{tareas?.length ? Math.round((hechas / tareas.length) * 100) : 0} %</p></div>
             <div className="rounded border border-[#e4dcc9] p-3"><p className="text-[11px] uppercase tracking-wider text-[#5b615c]">Entrega prevista</p><p className="font-mono text-lg font-bold">{fecha(p.fecha_fin)}</p></div>
           </div>
@@ -102,8 +73,7 @@ export default async function Informe({ params }: { params: Promise<{ id: string
           <table className="w-full border-collapse text-[13px]">
             <thead><tr className="border-b border-[#1c2521] text-left text-[11px] uppercase tracking-wider text-[#5b615c]"><th className="py-1.5">Indicador</th><th className="text-right">Al empezar</th><th className="text-right">Ahora</th><th className="text-right">Objetivo</th><th className="pl-4">Evolución</th></tr></thead>
             <tbody>{kpis.map((k) => {
-              const serie = [...k.kpi_valores].sort((a, b) => a.periodo.localeCompare(b.periodo)).filter((v) => v.periodo <= hasta);
-              const u = serie.at(-1); const e = estadoKpi(u?.valor, k.objetivo, k.valor_base, k.sentido);
+              const { serie, estado: e } = k; const u = serie.at(-1);
               return (
                 <tr key={k.id} className="border-b border-[#e4dcc9]">
                   <td className="py-2 font-medium">{k.nombre}</td>
@@ -179,19 +149,10 @@ export default async function Informe({ params }: { params: Promise<{ id: string
       {sec.has("costes") && costes && (
         <section>
           <H2 n={num()}>Costes y escandallos</H2>
-          {(() => {
-            const platos = costes.escandallos.filter((e) => e.tipo === "plato" && costes.calculos.get(e.id)?.foodCost != null);
-            const sobre = platos.filter((e) => costes.calculos.get(e.id)!.foodCost! > costes.objetivo);
-            const subidas = costes.productos.filter((x) => Number(x.variacion_pct ?? 0) >= 5);
-            return (
-              <>
-                <p>{platos.length} platos escandallados. Food cost objetivo: {numero(costes.objetivo * 100, 0)} %. {sobre.length ? `${sobre.length} por encima del objetivo:` : "Todos dentro del objetivo."}</p>
-                {sobre.length > 0 && <table className="mt-2 w-full border-collapse text-[13px]"><tbody>{sobre.map((e) => { const c = costes.calculos.get(e.id)!; return (
-                  <tr key={e.id} className="border-b border-[#e4dcc9]"><td className="py-1.5">{e.nombre}</td><td className="text-right">coste {eur(c.costeRacion, 2)}</td><td className="text-right">PVP {eur(Number(e.pvp), 2)}</td><td className="text-right font-bold text-[#a3322b]">{numero(c.foodCost! * 100, 1)} %</td><td className="text-right">PVP recomendado {eur(c.pvpRecomendado, 2)}</td></tr>); })}</tbody></table>}
-                {subidas.length > 0 && <p className="mt-3"><b>Subidas de precio relevantes:</b> {subidas.map((x) => `${x.nombre} (+${numero(Number(x.variacion_pct), 1)} %)`).join(", ")}.</p>}
-              </>
-            );
-          })()}
+          <p>{costes.platos} platos escandallados. Food cost objetivo: {numero(costes.objetivo * 100, 0)} %. {costes.sobre.length ? `${costes.sobre.length} por encima del objetivo:` : "Todos dentro del objetivo."}</p>
+          {costes.sobre.length > 0 && <table className="mt-2 w-full border-collapse text-[13px]"><tbody>{costes.sobre.map((e) => (
+            <tr key={e.id} className="border-b border-[#e4dcc9]"><td className="py-1.5">{e.nombre}</td><td className="text-right">coste {eur(e.coste, 2)}</td><td className="text-right">PVP {eur(e.pvp, 2)}</td><td className="text-right font-bold text-[#a3322b]">{numero(e.foodCost * 100, 1)} %</td><td className="text-right">PVP recomendado {eur(e.pvpRecomendado, 2)}</td></tr>))}</tbody></table>}
+          {costes.subidas.length > 0 && <p className="mt-3"><b>Subidas de precio relevantes:</b> {costes.subidas.map((x) => `${x.nombre} (+${numero(x.variacion, 1)} %)`).join(", ")}.</p>}
         </section>
       )}
 
