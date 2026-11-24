@@ -73,8 +73,8 @@
   --color-ok: var(--ok); --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn); --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad); --color-bad-soft: var(--bad-soft);
-  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-ac), ui-monospace, Menlo, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, Menlo, monospace;
   --radius-sm: 4px;
   --radius-md: 8px;
 }

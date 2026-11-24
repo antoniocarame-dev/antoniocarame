@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans, Space_Mono } from "next/font/google";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/space-mono/400.css";
+import "@fontsource/space-mono/700.css";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex" });
-const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono-ac" });
 
 export const metadata: Metadata = {
   title: { default: "AC Consultoría", template: "%s · AC Consultoría" },
@@ -16,7 +18,7 @@ export const viewport: Viewport = { themeColor: "#1c2521", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${plex.variable} ${mono.variable}`}>
+      <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
