@@ -13,7 +13,10 @@ import { EstadoProyecto, Semaforo } from "@/components/piezas";
 import { Documentos } from "@/components/documentos";
 import { requiereEquipo } from "@/lib/sesion";
 import { cargarDocs } from "@/lib/docs";
-import { actualizarNegocio, crearContacto, borrarContacto } from "@/app/acciones/negocios";
+import { actualizarNegocio, crearContacto, borrarContacto, borrarNegocio } from "@/app/acciones/negocios";
+import { FormAccion } from "@/components/form-accion";
+import { BotonExcel } from "@/components/boton-excel";
+import { redirect } from "next/navigation";
 import { TIPOS_NEGOCIO, TIPOS_PROYECTO, eur, fecha, numero } from "@/lib/utils";
 
 export default async function Negocio({ params }: { params: Promise<{ id: string }> }) {
@@ -71,7 +74,7 @@ export default async function Negocio({ params }: { params: Promise<{ id: string
         </div>
         <div className="grid content-start gap-4">
           <Card>
-            <CardHeader><CardTitle>Historial de proyectos</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Historial de proyectos</CardTitle><BotonExcel href={`/exportar/cliente?negocio=${id}`}>Todos sus datos en Excel</BotonExcel></CardHeader>
             <ul className="divide-y text-sm">
               {proyectos?.map((p) => (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
@@ -88,6 +91,21 @@ export default async function Negocio({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </div>
+      {s.esAdmin && (
+        <Card className="mt-8 border-bad/40">
+          <CardHeader><CardTitle className="text-bad">Borrar este cliente</CardTitle></CardHeader>
+          <p className="mb-3 max-w-[75ch] text-sm text-muted-foreground">
+            Se borran para siempre su ficha, contactos, {proyectos?.length ?? 0} {proyectos?.length === 1 ? "proyecto" : "proyectos"} con todo su contenido, documentos y fotos, compras, escandallos, ventas, inventarios y presupuestos.
+            Se conservan las facturas que le has emitido (Hacienda obliga a guardarlas 4 años) y tus horas, que pasan a trabajo interno. Antes de borrar, descarga sus datos en Excel si los puedes necesitar.
+          </p>
+          <FormAccion action={async (fd) => { "use server"; const r = await borrarNegocio(id, fd); if (r.ok) redirect("/negocios"); return r; }}>
+            <div className="flex flex-wrap items-end gap-2">
+              <Campo label={`Para confirmar, escribe «${n.nombre}»`} className="min-w-64 flex-1"><Input name="confirmacion" autoComplete="off" required /></Campo>
+              <Button type="submit" variant="destructive">Borrar cliente y sus datos</Button>
+            </div>
+          </FormAccion>
+        </Card>
+      )}
     </>
   );
 }

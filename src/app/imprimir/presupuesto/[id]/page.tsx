@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { BotonImprimir } from "@/components/imprimir";
 import { requiereEquipo } from "@/lib/sesion";
-import { baseDe, conceptosDe } from "@/lib/consultora";
+import { conceptosDe, totalesPresupuesto } from "@/lib/consultora";
 import { eur, fecha, numero } from "@/lib/utils";
 
 export const metadata = { title: "Presupuesto" };
@@ -15,7 +15,7 @@ export default async function PresupuestoPdf({ params }: { params: Promise<{ id:
   ]);
   if (!p) notFound();
   const conceptos = conceptosDe(p.conceptos);
-  const base = baseDe(p.conceptos), iva = base * Number(p.iva_pct) / 100;
+  const { base, iva, irpf, total } = totalesPresupuesto(p.conceptos, p.iva_pct, p.irpf_pct);
   const contacto = p.negocios?.contactos?.find((c) => c.principal) ?? p.negocios?.contactos?.[0];
   const vence = new Date(p.fecha + "T12:00:00"); vence.setDate(vence.getDate() + p.validez_dias);
   return (
@@ -47,7 +47,8 @@ export default async function PresupuestoPdf({ params }: { params: Promise<{ id:
         <tfoot>
           <tr><td colSpan={3} className="pt-3 text-right">Base imponible</td><td className="pt-3 text-right">{eur(base, 2)}</td></tr>
           <tr><td colSpan={3} className="text-right">IVA {numero(Number(p.iva_pct), 0)} %</td><td className="text-right">{eur(iva, 2)}</td></tr>
-          <tr className="font-mono text-[16px] font-bold"><td colSpan={3} className="pt-2 text-right">Total</td><td className="pt-2 text-right">{eur(base + iva, 2)}</td></tr>
+          {irpf > 0 && <tr><td colSpan={3} className="text-right">Retención IRPF {numero(Number(p.irpf_pct), 0)} %</td><td className="text-right">−{eur(irpf, 2)}</td></tr>}
+          <tr className="font-mono text-[16px] font-bold"><td colSpan={3} className="pt-2 text-right">Total a pagar</td><td className="pt-2 text-right">{eur(total, 2)}</td></tr>
         </tfoot>
       </table>
       {p.condiciones && <div className="mt-8 rounded border border-[#e4dcc9] p-4"><p className="mb-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#8a4a14]">Condiciones</p><p className="whitespace-pre-wrap text-[13px]">{p.condiciones}</p></div>}

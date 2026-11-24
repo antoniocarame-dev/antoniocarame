@@ -124,6 +124,52 @@ test.describe("Recorridos principales", () => {
     await expect(page.getByText("Alérgenos")).toBeVisible();
   });
 
+  test("presupuesto: retención de IRPF y PDF descargable", async ({ page }) => {
+    await page.goto("/consultora?v=presupuestos");
+    await page.locator("a", { hasText: "Control de costes y reorganización de cocina" }).click();
+    await page.waitForURL(/presupuestos\/[0-9a-f-]{36}$/);
+    await page.getByLabel("Retención IRPF (%)").fill("15");
+    await page.click('button:has-text("Guardar")');
+    await expect(page.getByText("Guardado")).toBeVisible();
+    await expect(page.getByText("Retención IRPF 15 %")).toBeVisible();
+    const r = await page.request.get((await page.locator('a:has-text("Descargar PDF")').getAttribute("href"))!);
+    expect(r.headers()["content-type"]).toBe("application/pdf");
+    expect((await r.body()).byteLength).toBeGreaterThan(2_000);
+  });
+
+  test("resumen del proyecto para el cliente", async ({ page }) => {
+    await page.goto(P);
+    await page.goto((await page.locator('a:has-text("Resumen para el cliente")').getAttribute("href"))!);
+    await expect(page.getByText("Cómo van los números")).toBeVisible();
+    await expect(page.getByText("Pendiente por vuestra parte")).toBeVisible();
+  });
+
+  test("subir receta sin clave de lectura avisa del motivo", async ({ page }) => {
+    test.skip(!!process.env.ANTHROPIC_API_KEY, "con clave se leería de verdad");
+    await page.goto(`${P}/escandallos`);
+    await page.setInputFiles('label:has-text("Subir receta") input[type=file]', { name: "receta.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF") });
+    await expect(page.getByRole("alert").filter({ hasText: "ANTHROPIC_API_KEY" })).toBeVisible();
+  });
+
+  test("exportar todos los datos de un cliente y borrarlo conservando facturas y horas", async ({ page }) => {
+    const NM = "b0000000-0000-0000-0000-000000000002";
+    const x = await page.request.get(`/exportar/cliente?negocio=${NM}`);
+    expect(x.status()).toBe(200);
+    expect(x.headers()["content-disposition"]).toContain("todos-los-datos");
+    await page.goto(`/negocios/${NM}`);
+    await page.fill("input[name=confirmacion]", "otro nombre");
+    await page.click('button:has-text("Borrar cliente y sus datos")');
+    await expect(page.getByRole("alert").filter({ hasText: "Escribe exactamente" })).toBeVisible();
+    await page.fill("input[name=confirmacion]", "Restaurante Marisma");
+    await page.click('button:has-text("Borrar cliente y sus datos")');
+    await page.waitForURL(/\/negocios$/);
+    await expect(page.getByText("Restaurante Marisma")).toHaveCount(0);
+    await page.goto("/consultora?v=facturacion");
+    await expect(page.locator("tr", { hasText: "F-2026-023" })).toContainText("Restaurante Marisma");
+    await page.goto("/consultora?v=horas");
+    await expect(page.getByText(/\[Restaurante Marisma ·/).first()).toBeVisible();
+  });
+
   test("el informe se genera en PDF", async ({ page }) => {
     await page.goto("/informe/94000000-0000-0000-0000-000000000001");
     await expect(page.getByText("Antes y después del proyecto")).toBeVisible();

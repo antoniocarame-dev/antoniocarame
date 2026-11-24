@@ -4,9 +4,9 @@ import { ArrowLeft } from "lucide-react";
 import { EditorEscandallo } from "@/components/escandallos/editor";
 import { cargarEscandallos } from "@/lib/negocio";
 
-export default async function EditarEscandallo({ params, searchParams }: { params: Promise<{ id: string; escandallo: string }>; searchParams: Promise<{ tipo?: string }> }) {
+export default async function EditarEscandallo({ params, searchParams }: { params: Promise<{ id: string; escandallo: string }>; searchParams: Promise<{ tipo?: string; aviso?: string }> }) {
   const { id, escandallo } = await params;
-  const { tipo } = await searchParams;
+  const { tipo, aviso } = await searchParams;
   const { negocio, productos, escandallos, calculos, objetivo } = await cargarEscandallos(id);
   const nuevo = escandallo === "nuevo";
   const e = nuevo ? null : escandallos.find((x) => x.id === escandallo);
@@ -18,6 +18,7 @@ export default async function EditarEscandallo({ params, searchParams }: { param
   return (
     <div>
       <Link href={volver} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />{esElab ? "Elaboraciones" : "Platos"}</Link>
+      {aviso && <p role="status" className="mb-3 rounded-sm bg-warn-soft px-3 py-2 text-sm text-warn"><b>Receta leída. Revísala antes de fiarte de ella:</b> {aviso}</p>}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-mono text-lg font-bold">{e?.nombre ?? (esElab ? "Nueva elaboración" : "Nuevo plato")}</h2>
         {e && <a href={`/imprimir/escandallo/${e.id}`} target="_blank" rel="noreferrer" className="rounded-sm border border-input bg-card px-2.5 py-1.5 text-[13px] font-medium hover:border-primary">Ficha técnica para imprimir</a>}

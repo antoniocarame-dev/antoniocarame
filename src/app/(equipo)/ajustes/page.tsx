@@ -20,6 +20,7 @@ export default async function Ajustes() {
           <FormAccion reset={false} action={async (fd) => { "use server"; return guardarOrganizacion(fd); }}>
             <div className="flex flex-wrap items-end gap-3">
               <Campo label="Nombre que aparece en los informes" className="min-w-64 flex-1"><Input name="nombre" defaultValue={org?.nombre} /></Campo>
+              <Campo label="Retención IRPF por defecto (%)" ayuda="15 % general · 7 % los tres primeros años · 0 si facturas como sociedad"><Input name="irpf_pct" type="number" step="1" min="0" max="25" className="w-32" defaultValue={Number((org?.ajustes as { irpf_pct?: number } | null)?.irpf_pct ?? 15)} /></Campo>
               <Button type="submit">Guardar</Button>
             </div>
           </FormAccion>

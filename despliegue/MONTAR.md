@@ -49,4 +49,9 @@ Tres servicios: **GitHub** guarda el código, **Supabase** la base de datos, los
 
 ## Actualizaciones
 
+Registro de actualizaciones de la base de datos (pégalas en orden en el SQL Editor si instalaste antes de que existieran):
+
+- `actualizacion-01-irpf-y-borrado.sql`: retención de IRPF en presupuestos, borrar clientes conservando facturas emitidas y horas.
+
+
 Cada cambio que se sube a GitHub se publica solo en Vercel. Si un cambio trae una migración nueva en `supabase/migrations`, se ejecuta en el SQL Editor de Supabase antes de publicar; las notas de cada cambio lo indicarán.

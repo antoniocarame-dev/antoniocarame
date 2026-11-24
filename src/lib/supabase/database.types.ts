@@ -417,14 +417,14 @@ isOneToOne: false
                   ]
                 },"facturas_emitidas": {
                   Row: {
-                    "base": number,"concepto": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_cobro"],"fecha": string,"fecha_cobro": string | null,"id": string,"irpf_pct": number,"iva_pct": number,"negocio_id": string,"numero": string,"organizacion_id": string,"presupuesto_id": string | null,"proyecto_id": string | null,"vencimiento": string | null
+                    "base": number,"cliente_nombre": string | null,"concepto": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_cobro"],"fecha": string,"fecha_cobro": string | null,"id": string,"irpf_pct": number,"iva_pct": number,"negocio_id": string | null,"numero": string,"organizacion_id": string,"presupuesto_id": string | null,"proyecto_id": string | null,"vencimiento": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "base": number,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id": string,"numero": string,"organizacion_id": string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
+                    "base": number,"cliente_nombre"?: string | null,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id"?: string | null,"numero": string,"organizacion_id": string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
                   }
                   Update: {
-                    "base"?: number,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id"?: string,"numero"?: string,"organizacion_id"?: string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
+                    "base"?: number,"cliente_nombre"?: string | null,"concepto"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_cobro"],"fecha"?: string,"fecha_cobro"?: string | null,"id"?: string,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id"?: string | null,"numero"?: string,"organizacion_id"?: string,"presupuesto_id"?: string | null,"proyecto_id"?: string | null,"vencimiento"?: string | null
                   }
                   Relationships: [
                     {
@@ -971,14 +971,14 @@ isOneToOne: false
                   ]
                 },"presupuestos": {
                   Row: {
-                    "conceptos": NonNullable<Json>,"condiciones": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_presupuesto"],"fecha": string,"fecha_estado": string | null,"id": string,"introduccion": string | null,"iva_pct": number,"negocio_id": string,"notas": string | null,"numero": string,"organizacion_id": string,"proyecto_id": string | null,"titulo": string,"updated_at": string,"validez_dias": number
+                    "conceptos": NonNullable<Json>,"condiciones": string | null,"created_at": string,"estado": Database["public"]['Enums']["estado_presupuesto"],"fecha": string,"fecha_estado": string | null,"id": string,"introduccion": string | null,"irpf_pct": number,"iva_pct": number,"negocio_id": string,"notas": string | null,"numero": string,"organizacion_id": string,"proyecto_id": string | null,"titulo": string,"updated_at": string,"validez_dias": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"iva_pct"?: number,"negocio_id": string,"notas"?: string | null,"numero": string,"organizacion_id": string,"proyecto_id"?: string | null,"titulo": string,"updated_at"?: string,"validez_dias"?: number
+                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id": string,"notas"?: string | null,"numero": string,"organizacion_id": string,"proyecto_id"?: string | null,"titulo": string,"updated_at"?: string,"validez_dias"?: number
                   }
                   Update: {
-                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"iva_pct"?: number,"negocio_id"?: string,"notas"?: string | null,"numero"?: string,"organizacion_id"?: string,"proyecto_id"?: string | null,"titulo"?: string,"updated_at"?: string,"validez_dias"?: number
+                    "conceptos"?: NonNullable<Json>,"condiciones"?: string | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_presupuesto"],"fecha"?: string,"fecha_estado"?: string | null,"id"?: string,"introduccion"?: string | null,"irpf_pct"?: number,"iva_pct"?: number,"negocio_id"?: string,"notas"?: string | null,"numero"?: string,"organizacion_id"?: string,"proyecto_id"?: string | null,"titulo"?: string,"updated_at"?: string,"validez_dias"?: number
                   }
                   Relationships: [
                     {

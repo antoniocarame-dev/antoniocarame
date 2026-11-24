@@ -54,7 +54,9 @@ export async function borrarEvento(id: string): Promise<Res> {
 export async function guardarOrganizacion(fd: FormData): Promise<Res> {
   const { supabase, perfil, esAdmin } = await getSesion();
   if (!esAdmin) return { ok: false, error: "Solo un administrador puede cambiar estos datos." };
-  const { error } = await supabase.from("organizaciones").update({ nombre: txt(fd, "nombre") ?? "Mi consultora" }).eq("id", perfil.organizacion_id);
+  const { data: org } = await supabase.from("organizaciones").select("ajustes").eq("id", perfil.organizacion_id).single();
+  const ajustes = { ...((org?.ajustes ?? {}) as Record<string, unknown>), irpf_pct: num(fd, "irpf_pct") ?? 0 };
+  const { error } = await supabase.from("organizaciones").update({ nombre: txt(fd, "nombre") ?? "Mi consultora", ajustes }).eq("id", perfil.organizacion_id);
   revalidatePath("/ajustes");
   return err(error);
 }

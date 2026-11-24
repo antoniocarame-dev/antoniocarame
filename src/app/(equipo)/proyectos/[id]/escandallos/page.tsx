@@ -9,6 +9,10 @@ import { BotonExcel } from "@/components/boton-excel";
 import { Vacio } from "@/components/ui/vacio";
 import { MatrizMenu } from "@/components/graficos";
 import { VentasForm } from "@/components/escandallos/ventas-form";
+import { SubirReceta } from "@/components/escandallos/subir-receta";
+
+// La lectura de una receta con Claude puede tardar hasta un minuto
+export const maxDuration = 60;
 import { cargarEscandallos } from "@/lib/negocio";
 import { CLASES, ingenieriaMenu, type Clase } from "@/lib/costes";
 import { eur, numero, mes as fmtMes } from "@/lib/utils";
@@ -47,6 +51,7 @@ export default async function Escandallos({ params, searchParams }: { params: Pr
         <SubPestanas base={base} actual={v} items={[["platos", "Platos", platos.length], ["elaboraciones", "Elaboraciones", elaboraciones.length], ["ingenieria", "Ingeniería de menú"]]} />
         <div className="flex gap-2">
           <BotonExcel href={`/exportar/escandallos?proyecto=${id}`} />
+          <SubirReceta negocioId={negocio.id} proyectoId={id} />
           <Button asChild variant="outline" size="sm"><Link href={`${base}/nuevo?tipo=elaboracion`}><Plus />Elaboración</Link></Button>
           <Button asChild size="sm"><Link href={`${base}/nuevo`}><Plus />Plato</Link></Button>
         </div>

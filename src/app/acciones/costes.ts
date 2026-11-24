@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { getSesion } from "@/lib/sesion";
 import { leerFactura, emparejarProducto } from "@/lib/ocr";
+import { leerReceta } from "@/lib/ocr-receta";
 import { err, num, txt, type Res } from "./comun";
 import type { Database } from "@/lib/supabase/database.types";
 type E = Database["public"]["Enums"];
@@ -200,4 +201,54 @@ export async function guardarVentas(periodo: string, unidades: Record<string, nu
   const { error } = await supabase.from("ventas_plato").upsert(filas, { onConflict: "escandallo_id,periodo" });
   rv();
   return err(error);
+}
+
+/**
+ * Crea un escandallo a partir de una receta leída por OCR. Enlaza cada ingrediente con el producto
+ * o la elaboración más parecida; los que no existen se crean como productos sin precio.
+ */
+export async function importarReceta(negocio_id: string, archivo_path: string, mime: string): Promise<Res & { aviso?: string }> {
+  const { supabase } = await getSesion();
+  const { data: blob, error: e1 } = await supabase.storage.from("documentos").download(archivo_path);
+  if (e1 || !blob) return { ok: false, error: "No se ha podido abrir el archivo subido." };
+  const lectura = await leerReceta(blob, mime);
+  if (!lectura.ok) return { ok: false, error: lectura.error };
+  const r = lectura.datos;
+
+  const [{ data: productos }, { data: elabs }] = await Promise.all([
+    supabase.from("productos").select("id, nombre").eq("negocio_id", negocio_id).eq("activo", true),
+    supabase.from("escandallos").select("id, nombre").eq("negocio_id", negocio_id).eq("tipo", "elaboracion"),
+  ]);
+  const prods = [...(productos ?? [])];
+  const nuevos: string[] = [], sinCantidad: string[] = [];
+  const ings: { producto_id: string | null; sub_escandallo_id: string | null; cantidad: number }[] = [];
+  for (const i of r.ingredientes) {
+    const nombre = i.nombre.trim();
+    if (!nombre) continue;
+    const exacto = (xs: { id: string; nombre: string }[]) => xs.find((x) => x.nombre.toLowerCase() === nombre.toLowerCase())?.id;
+    const sub = exacto(elabs ?? []) ?? emparejarProducto(nombre, elabs ?? []);
+    let prod = sub ? null : exacto(prods) ?? emparejarProducto(nombre, prods);
+    if (!sub && !prod) {
+      const { data: nuevo } = await supabase.from("productos").insert({ negocio_id, nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1), unidad: i.unidad }).select("id, nombre").single();
+      if (nuevo) { prod = nuevo.id; prods.push(nuevo); nuevos.push(nuevo.nombre); }
+    }
+    if (i.cantidad == null) sinCantidad.push(nombre);
+    ings.push({ producto_id: sub ? null : prod ?? null, sub_escandallo_id: sub ?? null, cantidad: i.cantidad ?? 0 });
+  }
+  const esElab = r.tipo === "elaboracion";
+  const { data: esc, error } = await supabase.from("escandallos").insert({
+    negocio_id, tipo: r.tipo, nombre: r.nombre, categoria: r.categoria, raciones: r.raciones && r.raciones > 0 ? r.raciones : 1,
+    rendimiento: esElab ? r.rendimiento ?? 1 : null, unidad_rendimiento: esElab ? r.unidad_rendimiento ?? "kg" : null, pvp: r.pvp, elaboracion: r.elaboracion,
+  }).select("id").single();
+  if (error) return err(error);
+  const filas = ings.filter((i) => i.producto_id || i.sub_escandallo_id).map((i, n) => ({ escandallo_id: esc.id, orden: n + 1, ...i }));
+  if (filas.length) await supabase.from("ingredientes_escandallo").insert(filas);
+  rv();
+  const avisos = [
+    nuevos.length ? `Productos nuevos sin precio (ponles precio en Costes y compras o valida una factura): ${nuevos.join(", ")}.` : "",
+    sinCantidad.length ? `Sin cantidad, revisa: ${sinCantidad.join(", ")}.` : "",
+    !r.pvp && !esElab ? "La receta no trae PVP: añádelo para ver el food cost." : "",
+    ...r.avisos,
+  ].filter(Boolean);
+  return { ok: true, id: esc.id, aviso: avisos.join(" ") || undefined };
 }

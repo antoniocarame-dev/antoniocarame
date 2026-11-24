@@ -27,6 +27,7 @@ export function EditorPresupuesto({ id, inicial, negocios, proyectos, tarifa }: 
         <Campo label="Fecha"><Input type="date" value={p.fecha} onChange={(e) => setP({ ...p, fecha: e.target.value })} /></Campo>
         <Campo label="Validez (días)"><Input type="number" min="1" value={p.validez_dias} onChange={(e) => setP({ ...p, validez_dias: nm(e.target.value) })} /></Campo>
         <Campo label="IVA (%)"><Input type="number" value={p.iva_pct} onChange={(e) => setP({ ...p, iva_pct: nm(e.target.value) })} /></Campo>
+        <Campo label="Retención IRPF (%)" ayuda="15 % general · 7 % primeros años · 0 sin retención"><Input type="number" min="0" max="25" value={p.irpf_pct} onChange={(e) => setP({ ...p, irpf_pct: nm(e.target.value) })} /></Campo>
         <Campo label="Introducción" className="sm:col-span-2 lg:col-span-4" ayuda="Qué has visto y qué propones, en el tono del cliente"><Textarea value={p.introduccion ?? ""} onChange={(e) => setP({ ...p, introduccion: e.target.value || null })} /></Campo>
       </div>
       <div className="overflow-x-auto rounded-md border bg-card">
@@ -47,7 +48,9 @@ export function EditorPresupuesto({ id, inicial, negocios, proyectos, tarifa }: 
           <tfoot>
             <tr><td className="px-3 py-2" colSpan={3}><Button variant="outline" size="sm" onClick={() => setP({ ...p, conceptos: [...p.conceptos, { descripcion: "", cantidad: 1, unidad: "servicio", precio: 0 }] })}><Plus />Concepto</Button></td>
               <td className="px-2 text-right text-muted-foreground">Base</td><td className="tnum px-2 text-right font-semibold">{eur(base, 2)}</td><td /></tr>
-            <tr className="text-muted-foreground"><td colSpan={3} className="px-3 pb-2 text-xs">{tarifa ? `Equivale a ${(base / tarifa).toLocaleString("es-ES", { maximumFractionDigits: 0 })} h a tu tarifa de ${eur(tarifa)}/h` : ""}</td><td className="px-2 text-right">Total con IVA</td><td className="tnum px-2 text-right">{eur(base * (1 + p.iva_pct / 100), 2)}</td><td /></tr>
+            <tr className="text-muted-foreground"><td colSpan={3} className="px-3 text-xs">{tarifa ? `Equivale a ${(base / tarifa).toLocaleString("es-ES", { maximumFractionDigits: 0 })} h a tu tarifa de ${eur(tarifa)}/h` : ""}</td><td className="px-2 text-right">IVA {p.iva_pct} %</td><td className="tnum px-2 text-right">{eur(base * p.iva_pct / 100, 2)}</td><td /></tr>
+            {p.irpf_pct > 0 && <tr className="text-muted-foreground"><td colSpan={3} /><td className="px-2 text-right">Retención IRPF {p.irpf_pct} %</td><td className="tnum px-2 text-right">−{eur(base * p.irpf_pct / 100, 2)}</td><td /></tr>}
+            <tr><td colSpan={3} /><td className="px-2 pb-2 text-right font-semibold">Total a pagar</td><td className="tnum px-2 pb-2 text-right font-semibold">{eur(base * (1 + p.iva_pct / 100 - p.irpf_pct / 100), 2)}</td><td /></tr>
           </tfoot>
         </table>
       </div>

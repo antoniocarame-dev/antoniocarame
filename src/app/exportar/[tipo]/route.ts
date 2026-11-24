@@ -31,8 +31,59 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tipo
     hoja(wb, "Conceptos", [{ titulo: "Presupuesto" }, { titulo: "Concepto", ancho: 50 }, { titulo: "Cantidad", tipo: "num" }, { titulo: "Unidad" }, { titulo: "Precio", tipo: "eur" }, { titulo: "Importe", tipo: "eur" }],
       (presupuestos ?? []).flatMap((p) => conceptosDe(p.conceptos).map((c) => [p.numero, c.descripcion, c.cantidad, c.unidad, c.precio, c.cantidad * c.precio])));
     hoja(wb, "Facturas emitidas", [{ titulo: "Número" }, { titulo: "Fecha", tipo: "fecha" }, { titulo: "Cliente", ancho: 32 }, { titulo: "Concepto", ancho: 40 }, { titulo: "Base", tipo: "eur" }, { titulo: "IVA %", tipo: "num" }, { titulo: "IRPF %", tipo: "num" }, { titulo: "Total", tipo: "eur" }, { titulo: "Vencimiento", tipo: "fecha" }, { titulo: "Estado" }, { titulo: "Cobrada el", tipo: "fecha" }],
-      (facturas ?? []).map((f) => [f.numero, f.fecha, f.negocios?.nombre, f.concepto, Number(f.base), Number(f.iva_pct), Number(f.irpf_pct), totalFactura(f), f.vencimiento, f.estado === "cobrada" ? "Cobrada" : "Pendiente", f.fecha_cobro]));
+      (facturas ?? []).map((f) => [f.numero, f.fecha, f.negocios?.nombre ?? f.cliente_nombre, f.concepto, Number(f.base), Number(f.iva_pct), Number(f.irpf_pct), totalFactura(f), f.vencimiento, f.estado === "cobrada" ? "Cobrada" : "Pendiente", f.fecha_cobro]));
     return respuestaExcel(wb, `consultora-${hoy()}`);
+  }
+
+  if (tipo === "cliente") {
+    // Todos los datos de un cliente en un solo archivo (útil también si lo pide por protección de datos)
+    const nid = req.nextUrl.searchParams.get("negocio");
+    if (!nid) return new NextResponse("Falta el cliente", { status: 400 });
+    const { data: neg } = await supabase.from("negocios").select("*").eq("id", nid).maybeSingle();
+    if (!neg) return new NextResponse("Cliente no encontrado", { status: 404 });
+    const [{ data: contactos }, { data: proyectos }, meses, { data: productos }, { data: facturas }, { data: escs }, { data: mermas }, { data: presupuestos }, { data: emitidas }] = await Promise.all([
+      supabase.from("contactos").select("*").eq("negocio_id", nid),
+      supabase.from("proyectos").select("*, hallazgos(*), acciones(*), tareas(*), kpis(*, kpi_valores(*))").eq("negocio_id", nid).order("fecha_inicio"),
+      cuentaResultados(supabase, neg),
+      supabase.from("v_productos_precio").select("*").eq("negocio_id", nid).order("nombre"),
+      supabase.from("facturas").select("*, proveedores(nombre)").eq("negocio_id", nid).order("fecha"),
+      supabase.from("escandallos").select("*, ingredientes_escandallo!ingredientes_escandallo_escandallo_id_fkey(*)").eq("negocio_id", nid).order("nombre"),
+      supabase.from("mermas").select("*, productos(nombre), escandallos(nombre)").eq("negocio_id", nid).order("fecha"),
+      supabase.from("presupuestos").select("*").eq("negocio_id", nid).order("fecha"),
+      supabase.from("facturas_emitidas").select("*").eq("negocio_id", nid).order("fecha"),
+    ]);
+    hoja(wb, "Ficha", [{ titulo: "Dato", ancho: 24 }, { titulo: "Valor", ancho: 60 }], [
+      ["Nombre", neg.nombre], ["Tipo", neg.tipo], ["Grupo", neg.grupo], ["Dirección", neg.direccion], ["Localidad", neg.localidad], ["Provincia", neg.provincia],
+      ["Aforo", neg.aforo], ["Plantilla", neg.plantilla], ["Horarios", neg.horarios], ["Ticket medio", neg.ticket_medio == null ? null : Number(neg.ticket_medio)],
+      ["Food cost objetivo", `${Number(neg.food_cost_objetivo) * 100} %`], ["Notas", neg.notas]]);
+    hoja(wb, "Contactos", [{ titulo: "Nombre", ancho: 26 }, { titulo: "Cargo", ancho: 20 }, { titulo: "Correo", ancho: 30 }, { titulo: "Teléfono", ancho: 16 }, { titulo: "Principal" }],
+      (contactos ?? []).map((c) => [c.nombre, c.cargo, c.email, c.telefono, c.principal ? "Sí" : ""]));
+    hoja(wb, "Proyectos", [{ titulo: "Código" }, { titulo: "Proyecto", ancho: 45 }, { titulo: "Tipo", ancho: 18 }, { titulo: "Estado" }, { titulo: "Inicio", tipo: "fecha" }, { titulo: "Entrega", tipo: "fecha" }, { titulo: "Objetivos", ancho: 60 }],
+      (proyectos ?? []).map((p) => [p.codigo, p.titulo, p.tipo, p.estado, p.fecha_inicio, p.fecha_fin, p.objetivos]));
+    hoja(wb, "Hallazgos", [{ titulo: "Proyecto", ancho: 30 }, { titulo: "Hallazgo", ancho: 45 }, { titulo: "Tipo" }, { titulo: "Categoría", ancho: 18 }, { titulo: "Impacto", tipo: "num" }, { titulo: "Esfuerzo", tipo: "num" }, { titulo: "Descripción", ancho: 60 }],
+      (proyectos ?? []).flatMap((p) => p.hallazgos.map((h) => [p.titulo, h.titulo, h.tipo, h.muda ?? h.dafo ?? "", h.impacto, h.esfuerzo, h.descripcion])));
+    hoja(wb, "Acciones", [{ titulo: "Proyecto", ancho: 30 }, { titulo: "Acción", ancho: 45 }, { titulo: "Fase PDCA" }, { titulo: "Responsable", ancho: 20 }, { titulo: "Fecha objetivo", tipo: "fecha" }, { titulo: "Resultado", ancho: 60 }],
+      (proyectos ?? []).flatMap((p) => p.acciones.map((a) => [p.titulo, a.titulo, PDCA[a.fase_pdca].nombre, a.responsable_externo ?? "Consultor", a.fecha_objetivo, a.resultado])));
+    hoja(wb, "Tareas", [{ titulo: "Proyecto", ancho: 30 }, { titulo: "Tarea", ancho: 45 }, { titulo: "Estado" }, { titulo: "Responsable", ancho: 20 }, { titulo: "Vence", tipo: "fecha" }],
+      (proyectos ?? []).flatMap((p) => p.tareas.map((t) => [p.titulo, t.titulo, ESTADOS_TAREA[t.estado], t.responsable_externo ?? "Consultor", t.vence])));
+    hoja(wb, "KPIs", [{ titulo: "Proyecto", ancho: 30 }, { titulo: "Indicador", ancho: 28 }, { titulo: "Mes", tipo: "fecha" }, { titulo: "Valor", tipo: "num" }, { titulo: "Unidad" }, { titulo: "Objetivo", tipo: "num" }],
+      (proyectos ?? []).flatMap((p) => p.kpis.flatMap((k) => k.kpi_valores.map((v) => [p.titulo, k.nombre, v.periodo, Number(v.valor), k.unidad, k.objetivo == null ? null : Number(k.objetivo)]))));
+    hoja(wb, "Cuenta de resultados", [{ titulo: "Mes", tipo: "fecha" }, { titulo: "Ventas netas", tipo: "eur" }, { titulo: "Materia prima", tipo: "eur" }, { titulo: "Personal", tipo: "eur" }, { titulo: "Otros gastos", tipo: "eur" }, { titulo: "EBITDA", tipo: "eur" }, { titulo: "Food cost", tipo: "pct" }, { titulo: "Labour cost", tipo: "pct" }],
+      meses.map((m) => [m.periodo, m.ventas, m.costeMp, m.personal, (m.alquiler ?? 0) + (m.suministros ?? 0) + (m.otros ?? 0), m.ebitda, m.kpi.food_cost, m.kpi.labour_cost]));
+    hoja(wb, "Productos y precios", [{ titulo: "Producto", ancho: 32 }, { titulo: "Familia", ancho: 18 }, { titulo: "Unidad" }, { titulo: "Precio actual", tipo: "eur4" }, { titulo: "Variación", tipo: "pct" }, { titulo: "Merma %", tipo: "num" }],
+      (productos ?? []).map((x) => [x.nombre, x.familia, x.unidad, x.precio_actual == null ? null : Number(x.precio_actual), x.variacion_pct == null ? null : Number(x.variacion_pct) / 100, Number(x.merma_pct)]));
+    hoja(wb, "Facturas de proveedores", [{ titulo: "Fecha", tipo: "fecha" }, { titulo: "Proveedor", ancho: 28 }, { titulo: "Número" }, { titulo: "Base", tipo: "eur" }, { titulo: "Total", tipo: "eur" }, { titulo: "Estado" }],
+      (facturas ?? []).map((f) => [f.fecha, f.proveedores?.nombre, f.numero, f.base == null ? null : Number(f.base), f.total == null ? null : Number(f.total), f.estado === "validada" ? "Validada" : "Por revisar"]));
+    const calc = calcularEscandallos((escs ?? []) as Escandallo[], productos ?? [], Number(neg.food_cost_objetivo));
+    hoja(wb, "Escandallos", [{ titulo: "Plato", ancho: 32 }, { titulo: "Tipo" }, { titulo: "Coste ración", tipo: "eur" }, { titulo: "PVP", tipo: "eur" }, { titulo: "Food cost", tipo: "pct" }, { titulo: "Margen", tipo: "eur" }, { titulo: "Alérgenos", ancho: 40 }],
+      ((escs ?? []) as Escandallo[]).map((e) => { const c = calc.get(e.id)!; return [e.nombre, e.tipo, c.costeRacion, e.pvp == null ? null : Number(e.pvp), c.foodCost, c.margen, c.alergenos.join(", ")]; }));
+    hoja(wb, "Mermas", [{ titulo: "Fecha", tipo: "fecha" }, { titulo: "Producto o plato", ancho: 30 }, { titulo: "Cantidad", tipo: "num" }, { titulo: "Motivo", ancho: 20 }, { titulo: "Coste", tipo: "eur" }],
+      (mermas ?? []).map((m) => [m.fecha, m.productos?.nombre ?? m.escandallos?.nombre, Number(m.cantidad), MOTIVOS_MERMA[m.motivo], Number(m.coste)]));
+    hoja(wb, "Presupuestos", [{ titulo: "Número" }, { titulo: "Fecha", tipo: "fecha" }, { titulo: "Título", ancho: 45 }, { titulo: "Base", tipo: "eur" }, { titulo: "Estado" }],
+      (presupuestos ?? []).map((p) => [p.numero, p.fecha, p.titulo, baseDe(p.conceptos), ESTADOS_PRESUPUESTO[p.estado]]));
+    hoja(wb, "Facturas emitidas", [{ titulo: "Número" }, { titulo: "Fecha", tipo: "fecha" }, { titulo: "Concepto", ancho: 40 }, { titulo: "Base", tipo: "eur" }, { titulo: "Retención IRPF %", tipo: "num" }, { titulo: "Total", tipo: "eur" }, { titulo: "Estado" }],
+      (emitidas ?? []).map((f) => [f.numero, f.fecha, f.concepto, Number(f.base), Number(f.irpf_pct), totalFactura(f), f.estado === "cobrada" ? "Cobrada" : "Pendiente"]));
+    return respuestaExcel(wb, `${neg.nombre}-todos-los-datos-${hoy()}`);
   }
 
   // El resto de exportaciones son de un proyecto (y de su negocio)

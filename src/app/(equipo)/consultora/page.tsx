@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, Download, Plus, Trash2 } from "lucide-react";
 import { Cabecera } from "@/components/shell";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ export default async function Consultora({ searchParams }: { searchParams: Promi
   ]);
   const nombreProy = (id: string | null) => { const p = proyectos?.find((x) => x.id === id); return p ? `${p.negocios?.nombre} · ${p.titulo}` : "Interno"; };
   const tarifa = Number(perfil.tarifa_hora ?? 0);
+  const { data: org } = await supabase.from("organizaciones").select("ajustes").single();
+  const irpfDefecto = Number((org?.ajustes as { irpf_pct?: number } | null)?.irpf_pct ?? 15);
   const mesActual = hoyISO().slice(0, 7);
   const año = hoyISO().slice(0, 4);
   const horasMes = (horas ?? []).filter((h) => h.fecha.startsWith(mesActual));
@@ -154,6 +156,8 @@ export default async function Consultora({ searchParams }: { searchParams: Promi
                 <div className="min-w-0 flex-1"><Link href={`/consultora/presupuestos/${p.id}`} className="font-medium hover:text-primary-ink">{p.titulo}</Link><p className="text-xs text-muted-foreground">{p.negocios?.nombre} · {fecha(p.fecha)}{p.proyecto_id ? " · con proyecto" : ""}</p></div>
                 <span className="tnum w-24 text-right font-semibold">{eur(baseDe(p.conceptos))}</span>
                 <Badge tono={p.estado === "aceptado" ? "ok" : p.estado === "rechazado" ? "bad" : caducado ? "bad" : p.estado === "enviado" ? "primary" : "neutro"}>{caducado ? "Caducado" : ESTADOS_PRESUPUESTO[p.estado]}</Badge>
+                <Button asChild variant="ghost" size="icon" aria-label="Descargar PDF"><a href={`/exportar/presupuesto/${p.id}`} download><Download /></a></Button>
+                <BotonAccion variant="ghost" size="icon" confirmar="¿Borrar?" title="Borrar presupuesto" accion={async () => { "use server"; return A.borrarPresupuesto(p.id); }}><Trash2 /></BotonAccion>
               </li>
             );
           })}
@@ -173,7 +177,7 @@ export default async function Consultora({ searchParams }: { searchParams: Promi
               <Campo label="Días para el pago"><Input name="dias_pago" type="number" min="0" defaultValue={15} /></Campo>
               <Campo label="Base imponible (€)"><Input name="base" type="number" step="0.01" min="0" required /></Campo>
               <Campo label="IVA (%)"><Input name="iva_pct" type="number" step="1" defaultValue={21} /></Campo>
-              <Campo label="Retención IRPF (%)" ayuda="Si facturas como autónomo a una empresa: 15 % (7 % los primeros años)"><Input name="irpf_pct" type="number" step="1" defaultValue={0} /></Campo>
+              <Campo label="Retención IRPF (%)" ayuda="Vacío: la del presupuesto o la de Ajustes. 15 % general, 7 % los primeros años"><Input name="irpf_pct" type="number" step="1" min="0" max="25" placeholder={String(irpfDefecto)} /></Campo>
             </DialogoForm>
           </div>
           {facturas?.length ? (
@@ -186,7 +190,7 @@ export default async function Consultora({ searchParams }: { searchParams: Promi
                     return (
                       <tr key={f.id} className="border-b last:border-0">
                         <td className="px-5 py-2.5"><p className="font-mono text-xs">{f.numero}</p><p className="text-xs text-muted-foreground">{fecha(f.fecha)}{f.concepto ? ` · ${f.concepto}` : ""}</p></td>
-                        <td className="px-2">{f.negocios?.nombre}</td>
+                        <td className="px-2">{f.negocios?.nombre ?? f.cliente_nombre}{Number(f.irpf_pct) > 0 && <span className="block text-xs text-muted-foreground">Retención {numero(Number(f.irpf_pct), 0)} %</span>}</td>
                         <td className="tnum px-2 text-right">{eur(Number(f.base), 2)}</td>
                         <td className="tnum px-2 text-right font-medium">{eur(totalFactura(f), 2)}</td>
                         <td className="px-2 text-xs">{f.estado === "cobrada" ? `Cobrada ${fechaCorta(f.fecha_cobro)}` : d != null ? <span className={d < 0 ? "font-semibold text-bad" : ""}>{d < 0 ? `Vencida hace ${-d} d` : `en ${d} d`}</span> : "—"}</td>

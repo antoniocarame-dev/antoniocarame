@@ -40,15 +40,17 @@ export async function crearPresupuesto(fd: FormData): Promise<Res> {
   const año = new Date().getFullYear();
   const { data: ult } = await supabase.from("presupuestos").select("numero").like("numero", `P-${año}-%`).order("numero", { ascending: false }).limit(1);
   const n = ult?.[0] ? Number(ult[0].numero.split("-")[2]) + 1 : 1;
+  const { data: org } = await supabase.from("organizaciones").select("ajustes").eq("id", perfil.organizacion_id).single();
+  const irpf = Number((org?.ajustes as { irpf_pct?: number } | null)?.irpf_pct ?? 15);
   const { data, error } = await supabase.from("presupuestos").insert({
     organizacion_id: perfil.organizacion_id, negocio_id, numero: `P-${año}-${String(n).padStart(3, "0")}`, titulo: txt(fd, "titulo") ?? "Propuesta de servicios",
-    conceptos: [{ descripcion: "", cantidad: 1, unidad: "servicio", precio: 0 }], condiciones: "50 % a la aceptación y 50 % a la entrega. Transferencia a 15 días.",
+    conceptos: [{ descripcion: "", cantidad: 1, unidad: "servicio", precio: 0 }], irpf_pct: irpf, condiciones: "50 % a la aceptación y 50 % a la entrega. Transferencia a 15 días.",
   }).select("id").single();
   rv();
   return error ? err(error) : { ok: true, id: data.id };
 }
 
-export type PresupuestoForm = { titulo: string; fecha: string; validez_dias: number; introduccion: string | null; conceptos: Concepto[]; iva_pct: number; condiciones: string | null; notas: string | null; negocio_id: string; proyecto_id: string | null };
+export type PresupuestoForm = { titulo: string; fecha: string; validez_dias: number; introduccion: string | null; conceptos: Concepto[]; iva_pct: number; irpf_pct: number; condiciones: string | null; notas: string | null; negocio_id: string; proyecto_id: string | null };
 export async function guardarPresupuesto(id: string, p: PresupuestoForm): Promise<Res> {
   const { supabase } = await soloAdmin();
   if (!p.titulo.trim()) return { ok: false, error: "Ponle título." };
@@ -94,17 +96,22 @@ export async function registrarFacturaEmitida(fd: FormData): Promise<Res> {
   const { supabase, perfil } = await soloAdmin();
   const presupuesto_id = txt(fd, "presupuesto_id");
   let negocio_id = txt(fd, "negocio_id"), proyecto_id: string | null = null;
+  let irpfPres: number | null = null;
   if (presupuesto_id) {
-    const { data: p } = await supabase.from("presupuestos").select("negocio_id, proyecto_id").eq("id", presupuesto_id).single();
-    negocio_id = p?.negocio_id ?? negocio_id; proyecto_id = p?.proyecto_id ?? null;
+    const { data: p } = await supabase.from("presupuestos").select("negocio_id, proyecto_id, irpf_pct").eq("id", presupuesto_id).single();
+    negocio_id = p?.negocio_id ?? negocio_id; proyecto_id = p?.proyecto_id ?? null; irpfPres = p ? Number(p.irpf_pct) : null;
   }
   const base = num(fd, "base"), numero = txt(fd, "numero");
   if (!negocio_id || base == null || !numero) return { ok: false, error: "Indica cliente, número y base." };
   const fecha = txt(fd, "fecha") ?? new Date().toISOString().slice(0, 10);
   const venc = new Date(fecha + "T12:00:00"); venc.setDate(venc.getDate() + (num(fd, "dias_pago") ?? 15));
+  const { data: neg } = await supabase.from("negocios").select("nombre").eq("id", negocio_id).single();
+  const irpfForm = num(fd, "irpf_pct");
+  const { data: org } = await supabase.from("organizaciones").select("ajustes").eq("id", perfil.organizacion_id).single();
+  const irpfAjustes = Number((org?.ajustes as { irpf_pct?: number } | null)?.irpf_pct ?? 0);
   const { error } = await supabase.from("facturas_emitidas").insert({
-    organizacion_id: perfil.organizacion_id, negocio_id, proyecto_id, presupuesto_id, numero, concepto: txt(fd, "concepto"), fecha,
-    vencimiento: venc.toISOString().slice(0, 10), base, iva_pct: num(fd, "iva_pct") ?? 21, irpf_pct: num(fd, "irpf_pct") ?? 0,
+    organizacion_id: perfil.organizacion_id, negocio_id, cliente_nombre: neg?.nombre ?? null, proyecto_id, presupuesto_id, numero, concepto: txt(fd, "concepto"), fecha,
+    vencimiento: venc.toISOString().slice(0, 10), base, iva_pct: num(fd, "iva_pct") ?? 21, irpf_pct: irpfForm ?? irpfPres ?? irpfAjustes,
   });
   rv();
   return err(error);
