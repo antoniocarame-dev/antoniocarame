@@ -1,0 +1,3 @@
+{ "name": "AC Consultoría", "short_name": "AC", "start_url": "/", "display": "standalone",
+  "background_color": "#f7f4ee", "theme_color": "#1c2521",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

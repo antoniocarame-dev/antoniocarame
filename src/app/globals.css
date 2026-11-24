@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Identidad AC: papel (surface), tinta, cobre (accent) y mostaza (accent-secondary).
+   Modo oscuro derivado de surface-dark. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f4ee;
+  --card: #fffdf8;
+  --foreground: #1c2521;
+  --muted: #efeae0;
+  --muted-foreground: #5b615c;
+  --border: #e4dcc9;
+  --input: #d8cfbb;
+  --primary: #9e5618;          /* cobre, oscurecido para texto blanco legible */
+  --primary-foreground: #fff8ee;
+  --primary-soft: #f3e6d6;
+  --primary-ink: #8a4a14;
+  --brand: #b5651d;            /* cobre de marca: sello y detalles */
+  --accent: #b98a2e;           /* mostaza */
+  --sidebar: #1c2521;
+  --sidebar-foreground: #f7f4ee;
+  --sidebar-muted: #a9b0a9;
+  --sidebar-hover: #26322d;
+  --ok: #2f6f45;  --ok-soft: #e1eee3;
+  --warn: #8c5a0b; --warn-soft: #f6ead0;
+  --bad: #a3322b;  --bad-soft: #f6deda;
+  --chart-1: #b5651d; --chart-2: #6e7c93; --chart-3: #b98a2e; --chart-4: #2f6f45; --chart-5: #242b3d;
+}
+.dark {
+  --background: #141b18;
+  --card: #1c2521;
+  --foreground: #f0ebe1;
+  --muted: #232e29;
+  --muted-foreground: #a7ada6;
+  --border: #2e3a34;
+  --input: #3a4740;
+  --primary: #d28a45;
+  --primary-foreground: #1a120a;
+  --primary-soft: #3a2b1d;
+  --primary-ink: #e39c58;
+  --brand: #d28a45;
+  --accent: #d9a441;
+  --sidebar: #0e1311;
+  --sidebar-foreground: #f0ebe1;
+  --sidebar-muted: #8e968f;
+  --sidebar-hover: #1a2420;
+  --ok: #6cc08a;  --ok-soft: #1e3327;
+  --warn: #e2b354; --warn-soft: #3a2f17;
+  --bad: #ee7a70;  --bad-soft: #3d1f1c;
+  --chart-1: #d28a45; --chart-2: #8fa0bb; --chart-3: #d9a441; --chart-4: #6cc08a; --chart-5: #c9d1e3;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+  --color-brand: var(--brand);
+  --color-accent: var(--accent);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-ok: var(--ok); --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn); --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad); --color-bad-soft: var(--bad-soft);
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-ac), ui-monospace, Menlo, monospace;
+  --radius-sm: 4px;
+  --radius-md: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html, body { height: 100%; }
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
+* { border-color: var(--border); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--primary-ink);
+}
+.tnum { font-variant-numeric: tabular-nums; }
+.ticket-edge { position: relative; }
+.ticket-edge::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px;
+  background: radial-gradient(circle at 5px -1px, transparent 5px, var(--card) 5.5px) 0 0 / 10px 6px repeat-x;
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
