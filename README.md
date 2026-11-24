@@ -75,11 +75,7 @@ Abre http://localhost:3000 y entra con `admin@demo.test` / `demo1234`.
 
 ## Publicar
 
-1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
-2. `npx supabase link --project-ref <ref>` y `npx supabase db push` para crear tablas, políticas y el bucket.
-3. **No cargues `seed.sql` en producción**: entra con tu correo y serás el admin (el primer usuario crea la organización). Para crear ese primer usuario: Authentication → Users → *Add user*.
-4. En Authentication → Providers → Email, desactiva *Allow new users to sign up*.
-5. Despliega en Vercel con las variables de `.env.example`.
+Sigue `despliegue/MONTAR.md`: GitHub, Supabase (pegando `despliegue/instalar.sql` en el SQL Editor) y Vercel.
 
 ## Estructura
 

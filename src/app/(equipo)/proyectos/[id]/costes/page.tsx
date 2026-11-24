@@ -17,6 +17,9 @@ import { precioNeto } from "@/lib/costes";
 import * as A from "@/app/acciones/costes";
 import { eur, fecha, fechaCorta, hoyISO, numero, type Tabla } from "@/lib/utils";
 
+// La lectura de una factura con Claude puede tardar hasta un minuto
+export const maxDuration = 60;
+
 const ALERGENOS = ["Gluten", "Crustáceos", "Huevos", "Pescado", "Cacahuetes", "Soja", "Lácteos", "Frutos de cáscara", "Apio", "Mostaza", "Sésamo", "Sulfitos", "Altramuces", "Moluscos"];
 const FAMILIAS = ["Pescado y marisco", "Carne", "Fruta y verdura", "Lácteos y huevos", "Secos", "Aceites", "Panadería", "Bebidas", "Congelados", "Limpieza", "Otros"];
 const UNIDAD = { kg: "kg", l: "l", ud: "ud" } as const;
