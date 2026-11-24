@@ -176,4 +176,52 @@ test.describe("Recorridos principales", () => {
     const pdf = await page.pdf({ format: "A4" });
     expect(pdf.byteLength).toBeGreaterThan(20_000);
   });
+
+  test("plantillas predefinidas: instalar, auditar con sí/no, medición y texto, y anotar necesidades", async ({ page }) => {
+    await page.goto("/biblioteca");
+    await page.getByRole("button", { name: "Instalar plantillas predefinidas" }).click();
+    await expect(page.getByRole("button", { name: "Instalar plantillas predefinidas" })).toHaveCount(0);
+    await expect(page.locator("a", { hasText: "Cámaras, almacén y stock" })).toBeVisible();
+    await expect(page.locator("a", { hasText: "Cliente misterioso" })).toBeVisible();
+
+    await page.goto(`${P}/diagnostico`);
+    await page.getByRole("button", { name: "Nueva auditoría" }).click();
+    await page.locator("select[name=plantilla_id]").selectOption({ label: "Cámaras, almacén y stock" });
+    await page.getByRole("button", { name: "Empezar" }).click();
+    await page.waitForURL(/diagnostico\/[0-9a-f-]{36}$/);
+
+    const punto = (id: string) => page.locator(`li[data-item="${id}"]`);
+    await expect(punto("ca1")).toContainText("Objetivo: 0 a 4 °C");
+    await punto("ca1").getByRole("spinbutton").fill("7");
+    await punto("ca1").getByLabel("Comentario").click();
+    await expect(punto("ca1")).toContainText("Fuera de objetivo");
+    await punto("ca1").getByLabel("Comentario").fill("Puerta mal cerrada");
+    await punto("ca4").click();
+    await punto("ca4").getByRole("radio", { name: "Sí" }).click();
+    await punto("ca14").getByRole("textbox").fill("Seis cajas de gambón congelado sin salida");
+    await punto("ca14").getByRole("textbox").blur();
+    await punto("ca8").getByRole("button", { name: "Anotar necesidad" }).click();
+    await punto("ca8").getByRole("textbox", { name: "Necesidad", exact: true }).fill("Etiquetadora y rotulador para fechas");
+    await punto("ca8").getByRole("button", { name: "Anotar", exact: true }).click();
+    await expect(page.getByRole("complementary").filter({ hasText: "Necesidades y hallazgos" })).toContainText("Etiquetadora y rotulador para fechas");
+    await expect(page.getByText("Guardado")).toBeVisible();
+
+    await page.reload();
+    await expect(punto("ca1").getByRole("spinbutton")).toHaveValue("7");
+    await expect(punto("ca1").getByLabel("Comentario")).toHaveValue("Puerta mal cerrada");
+    await expect(punto("ca4").getByRole("radio", { name: "Sí" })).toHaveAttribute("aria-checked", "true");
+
+    await page.goto((await page.locator('a:has-text("Informe PDF")').getAttribute("href"))!);
+    await expect(page.getByText("50/100").first()).toBeVisible();
+    await expect(page.getByText("7 °C").first()).toBeVisible();
+    await expect(page.getByText("objetivo 0 a 4 °C")).toBeVisible();
+    await expect(page.getByText("Seis cajas de gambón congelado sin salida")).toBeVisible();
+    await expect(page.getByText("Etiquetadora y rotulador para fechas")).toBeVisible();
+
+    await page.goto("/biblioteca");
+    await page.locator("a", { hasText: "Cámaras, almacén y stock" }).click();
+    await page.goto((await page.locator('a:has-text("Hoja en blanco")').getAttribute("href"))!);
+    await expect(page.getByText("Objetivo: 0 a 4 °C")).toBeVisible();
+    await expect(page.getByText("Necesidades detectadas y hallazgos")).toBeVisible();
+  });
 });

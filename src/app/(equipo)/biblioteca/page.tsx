@@ -4,6 +4,9 @@ import { Cabecera } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { requiereEquipo } from "@/lib/sesion";
+import { BotonAccion } from "@/components/boton-accion";
+import { instalarPlantillasBase } from "@/app/acciones/diagnostico";
+import { PLANTILLAS_BASE } from "@/lib/plantillas-base";
 import { AREAS, contenidoAuditoria, fecha } from "@/lib/utils";
 
 export const metadata = { title: "Biblioteca" };
@@ -17,9 +20,23 @@ const SECCIONES = [
 export default async function Biblioteca() {
   const { supabase } = await requiereEquipo();
   const { data } = await supabase.from("plantillas").select("*").order("activa", { ascending: false }).order("nombre");
+  const tengo = new Set((data ?? []).filter((p) => p.tipo === "auditoria").map((p) => p.nombre.trim().toLowerCase()));
+  const faltan = PLANTILLAS_BASE.filter((p) => !tengo.has(p.nombre.toLowerCase()));
   return (
     <>
       <Cabecera eyebrow="Método" titulo="Biblioteca de plantillas" sub="Tu forma de trabajar, reutilizable en todos los proyectos." />
+      {faltan.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-primary/40 bg-card p-4">
+          <div className="max-w-[70ch]">
+            <h2 className="font-semibold">Plantillas predefinidas de auditoría</h2>
+            <p className="text-sm text-muted-foreground">
+              {faltan.length === PLANTILLAS_BASE.length ? `${faltan.length} fichas diseñadas por áreas` : `Faltan ${faltan.length} de ${PLANTILLAS_BASE.length}`}: {faltan.map((p) => p.nombre).join(" · ")}.
+              Cada una con sus preguntas de sí/no, mediciones con objetivo y espacio para anotar necesidades. Después puedes editarlas.
+            </p>
+          </div>
+          <BotonAccion variant="default" size="default" accion={async () => { "use server"; return instalarPlantillasBase(); }} ok="Plantillas instaladas">Instalar plantillas predefinidas</BotonAccion>
+        </div>
+      )}
       <div className="grid gap-8">
         {SECCIONES.map((sec) => (
           <section key={sec.tipo}>

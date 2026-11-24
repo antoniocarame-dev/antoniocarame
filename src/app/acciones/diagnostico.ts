@@ -4,6 +4,7 @@ import { getSesion } from "@/lib/sesion";
 import { bool, err, num, txt, type Res } from "./comun";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ContenidoAuditoria } from "@/lib/utils";
+import { PLANTILLAS_BASE } from "@/lib/plantillas-base";
 type E = Database["public"]["Enums"];
 
 export async function crearAuditoria(proyecto_id: string, fd: FormData): Promise<Res> {
@@ -29,6 +30,20 @@ export async function guardarRespuesta(proyecto_id: string, auditoria_id: string
   await supabase.rpc("recalcular_puntuacion", { a: auditoria_id });
   revalidatePath(`/proyectos/${proyecto_id}/diagnostico`, "layout");
   return { ok: true };
+}
+
+/** Desde un punto de la auditoría: apunta lo que necesita el local como observación del diagnóstico. */
+export async function anotarNecesidad(proyecto_id: string, auditoria_id: string, texto: string, punto: string): Promise<Res> {
+  const { supabase, perfil } = await getSesion();
+  if (!texto.trim()) return { ok: false, error: "Escribe qué necesitan." };
+  const { data: a } = await supabase.from("auditorias").select("area").eq("id", auditoria_id).eq("proyecto_id", proyecto_id).single();
+  if (!a) return { ok: false, error: "No se encuentra la auditoría." };
+  const { error } = await supabase.from("hallazgos").insert({
+    proyecto_id, auditoria_id, tipo: "observacion", area: a.area, titulo: texto.trim().slice(0, 200),
+    descripcion: `Necesidad detectada en: ${punto}`, impacto: 3, esfuerzo: 3, creado_por: perfil.id,
+  });
+  revalidatePath(`/proyectos/${proyecto_id}/diagnostico`, "layout");
+  return err(error);
 }
 
 export async function cerrarAuditoria(proyecto_id: string, id: string, fd: FormData): Promise<Res> {
@@ -107,6 +122,21 @@ export async function guardarPlantilla(id: string | null, nombre: string, area: 
 export async function archivarPlantilla(id: string, activa: boolean): Promise<Res> {
   const { supabase } = await getSesion();
   const { error } = await supabase.from("plantillas").update({ activa }).eq("id", id);
+  revalidatePath("/biblioteca", "layout");
+  return err(error);
+}
+
+/** Añade a la biblioteca las plantillas predefinidas que falten (por nombre). No toca las que ya tienes. */
+export async function instalarPlantillasBase(): Promise<Res> {
+  const { supabase, perfil } = await getSesion();
+  const { data: hay, error: e1 } = await supabase.from("plantillas").select("nombre").eq("tipo", "auditoria");
+  if (e1) return err(e1);
+  const existentes = new Set((hay ?? []).map((p) => p.nombre.trim().toLowerCase()));
+  const nuevas = PLANTILLAS_BASE.filter((p) => !existentes.has(p.nombre.toLowerCase()));
+  if (!nuevas.length) return { ok: true };
+  const { error } = await supabase.from("plantillas").insert(nuevas.map((p) => ({
+    organizacion_id: perfil.organizacion_id, tipo: "auditoria" as const, nombre: p.nombre, area: p.area, descripcion: p.descripcion, contenido: p.contenido,
+  })));
   revalidatePath("/biblioteca", "layout");
   return err(error);
 }

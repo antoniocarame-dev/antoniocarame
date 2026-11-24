@@ -88,7 +88,38 @@ export function estadoKpi(valor: number | null | undefined, objetivo: number | n
   return "warn" as const;
 }
 
-export type ItemAuditoria = { id: string; texto: string; peso?: number };
+/**
+ * Un punto de una plantilla. Tipos:
+ * - escala: valoración 0-4 · sino: Sí (4) / No (0) · medida: número con objetivo (dentro = 4, fuera = 0)
+ * - texto: respuesta libre, no puntúa (toma de datos, necesidades)
+ */
+export type TipoItem = "escala" | "sino" | "medida" | "texto";
+export type ItemAuditoria = { id: string; texto: string; peso?: number; tipo?: TipoItem; ayuda?: string; unidad?: string; min?: number | null; max?: number | null };
+export const TIPOS_ITEM: Record<TipoItem, string> = { escala: "Valoración 0-4", sino: "Sí / No", medida: "Medición", texto: "Texto libre" };
+
+/** Valor 0-4 de una medición según su objetivo (null si no hay objetivo o no se ha medido). */
+export function valorMedida(it: ItemAuditoria, medida: number | null): number | null {
+  if (medida == null || !Number.isFinite(medida) || (it.min == null && it.max == null)) return null;
+  return (it.min == null || medida >= it.min) && (it.max == null || medida <= it.max) ? 4 : 0;
+}
+/** En los puntos de medición, la nota guarda el número en la 1.ª línea y el comentario debajo. */
+export function partirMedida(nota: string | null | undefined): { medida: number | null; comentario: string } {
+  if (!nota) return { medida: null, comentario: "" };
+  const [l1, ...resto] = nota.split("\n");
+  if (l1.trim() === "") return { medida: null, comentario: resto.join("\n") };
+  const n = Number(l1.trim().replace(",", "."));
+  return Number.isFinite(n) ? { medida: n, comentario: resto.join("\n") } : { medida: null, comentario: nota };
+}
+export function unirMedida(medida: number | null, comentario: string): string | null {
+  const c = comentario.trim();
+  if (medida == null && !c) return null;
+  return c ? `${medida ?? ""}\n${c}` : String(medida);
+}
+export const tipoDe = (it: ItemAuditoria): TipoItem => it.tipo ?? "escala";
+export const objetivoTexto = (it: ItemAuditoria) =>
+  it.min != null && it.max != null ? `${numero(it.min, 2)} a ${numero(it.max, 2)} ${it.unidad ?? ""}`.trim()
+  : it.max != null ? `≤ ${numero(it.max, 2)} ${it.unidad ?? ""}`.trim()
+  : it.min != null ? `≥ ${numero(it.min, 2)} ${it.unidad ?? ""}`.trim() : "";
 export type ContenidoAuditoria = { secciones: { titulo: string; items: ItemAuditoria[] }[] };
 export const contenidoAuditoria = (c: unknown): ContenidoAuditoria =>
   c && typeof c === "object" && Array.isArray((c as ContenidoAuditoria).secciones) ? (c as ContenidoAuditoria) : { secciones: [] };

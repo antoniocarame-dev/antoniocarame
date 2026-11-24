@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ClipboardCheck, Plus, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,7 +78,7 @@ export default async function Diagnostico({ params }: { params: Promise<{ id: st
             {editar && (
               <DialogoForm titulo="Nueva auditoría" descripcion="Se copia la plantilla tal cual está hoy, para que cambios futuros no alteren auditorías pasadas."
                 trigger={<Button size="sm"><Plus />Nueva auditoría</Button>} boton="Empezar"
-                action={async (fd) => { "use server"; return A.crearAuditoria(id, fd); }}>
+                action={async (fd) => { "use server"; const r = await A.crearAuditoria(id, fd); if (r.ok && r.id) redirect(`/proyectos/${id}/diagnostico/${r.id}`); return r; }}>
                 <Campo label="Plantilla" className="sm:col-span-2"><Select name="plantilla_id" required vacio="Elige plantilla" opciones={(plantillas ?? []).map((p) => [p.id, p.nombre])} /></Campo>
                 <Campo label="Fecha"><Input name="fecha" type="date" defaultValue={hoyISO()} /></Campo>
                 <Campo label="Título (opcional)"><Input name="titulo" placeholder="Ej. Cocina · servicio de cena" /></Campo>

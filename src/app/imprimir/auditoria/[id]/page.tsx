@@ -1,10 +1,25 @@
 import { notFound } from "next/navigation";
 import { BotonImprimir } from "@/components/imprimir";
 import { requiereEquipo } from "@/lib/sesion";
-import { AREAS, ESCALA, MUDAS, contenidoAuditoria, fecha } from "@/lib/utils";
+import { AREAS, ESCALA, MUDAS, contenidoAuditoria, fecha, numero, objetivoTexto, partirMedida, tipoDe, type ItemAuditoria } from "@/lib/utils";
 
 export const metadata = { title: "Informe de auditoría" };
 const COLOR = ["#a3322b", "#a3322b", "#8c5a0b", "#2f6f45", "#2f6f45"];
+
+/** Etiqueta del resultado según el tipo de punto. */
+function etiqueta(it: ItemAuditoria, valor: number | null | undefined, nota: string | null | undefined) {
+  const t = tipoDe(it);
+  if (t === "texto") return null;
+  if (t === "medida") {
+    const { medida } = partirMedida(nota);
+    const txt = medida == null ? "Sin medir" : `${numero(medida, 2)} ${it.unidad ?? ""}`.trim();
+    return { txt, color: valor == null ? "#9aa09b" : COLOR[valor] };
+  }
+  if (valor == null) return { txt: "N/A", color: "#9aa09b" };
+  if (t === "sino") return { txt: valor === 4 ? "Sí" : "No", color: COLOR[valor] };
+  return { txt: `${valor} · ${ESCALA[valor]}`, color: COLOR[valor] };
+}
+const textoNota = (it: ItemAuditoria, nota: string | null | undefined) => tipoDe(it) === "medida" ? partirMedida(nota).comentario : nota;
 
 /** Auditoría documentada: puntuación por secciones, cada punto con su nota, comentario y foto. */
 export default async function InformeAuditoria({ params }: { params: Promise<{ id: string }> }) {
@@ -54,7 +69,7 @@ export default async function InformeAuditoria({ params }: { params: Promise<{ i
       {criticos.length > 0 && (
         <div className="bloque mb-6 rounded border border-[#a3322b] p-3">
           <p className="mb-1 font-mono text-[11px] font-bold uppercase tracking-wider text-[#a3322b]">Puntos críticos ({criticos.length})</p>
-          <ul className="text-[13px]">{criticos.map((it) => <li key={it.id}>· {it.texto}{r.get(it.id)?.nota ? ` — ${r.get(it.id)!.nota}` : ""}</li>)}</ul>
+          <ul className="text-[13px]">{criticos.map((it) => { const x = r.get(it.id); const e = etiqueta(it, x?.valor, x?.nota); const n = textoNota(it, x?.nota); return <li key={it.id}>· {it.texto}{e && tipoDe(it) !== "escala" ? ` (${e.txt})` : ""}{n ? ` — ${n}` : ""}</li>; })}</ul>
         </div>
       )}
 
@@ -65,16 +80,17 @@ export default async function InformeAuditoria({ params }: { params: Promise<{ i
             {s.items.map((it) => {
               const x = r.get(it.id);
               const foto = x?.foto_path ? url.get(x.foto_path) : undefined;
+              const e = etiqueta(it, x?.valor, x?.nota);
+              const n = textoNota(it, x?.nota);
+              const obj = tipoDe(it) === "medida" ? objetivoTexto(it) : "";
               return (
                 <li key={it.id} className="grid grid-cols-[1fr_auto] gap-x-4 border-b border-dashed border-[#e4dcc9] pb-2">
                   <div>
-                    <p className="font-medium">{it.texto}</p>
-                    {x?.nota && <p className="text-[13px] text-[#5b615c]">{x.nota}</p>}
+                    <p className="font-medium">{it.texto}{obj && <span className="ml-2 text-[12px] font-normal text-[#5b615c]">objetivo {obj}</span>}</p>
+                    {n && <p className={tipoDe(it) === "texto" ? "whitespace-pre-line text-[13px]" : "text-[13px] text-[#5b615c]"}>{n}</p>}
                     {foto && <img src={foto} alt="" className="mt-1.5 h-36 rounded object-cover" />}
                   </div>
-                  <span className="self-start whitespace-nowrap rounded px-2 py-0.5 font-mono text-[12px] font-bold text-white" style={{ background: x?.valor == null ? "#9aa09b" : COLOR[x.valor] }}>
-                    {x?.valor == null ? "N/A" : `${x.valor} · ${ESCALA[x.valor]}`}
-                  </span>
+                  {e ? <span className="self-start whitespace-nowrap rounded px-2 py-0.5 font-mono text-[12px] font-bold text-white" style={{ background: e.color }}>{e.txt}</span> : <span />}
                 </li>
               );
             })}
@@ -84,16 +100,16 @@ export default async function InformeAuditoria({ params }: { params: Promise<{ i
 
       {!!hallazgos?.length && (
         <section className="mb-6">
-          <h2 className="mb-2 border-b border-[#1c2521] pb-1 font-mono text-[13px] font-bold uppercase tracking-wider">Hallazgos registrados</h2>
+          <h2 className="mb-2 border-b border-[#1c2521] pb-1 font-mono text-[13px] font-bold uppercase tracking-wider">Necesidades y hallazgos</h2>
           {hallazgos.map((h) => (
-            <div key={h.id} className="bloque mb-2"><p><b>{h.titulo}</b>{h.muda ? ` · ${MUDAS[h.muda].nombre}` : ""} · impacto {h.impacto}/5</p>{h.descripcion && <p className="text-[13px] text-[#5b615c]">{h.descripcion}</p>}
+            <div key={h.id} className="bloque mb-2"><p><b>{h.titulo}</b>{h.muda ? ` · ${MUDAS[h.muda].nombre}` : ""}{h.tipo === "observacion" ? "" : ` · impacto ${h.impacto}/5`}</p>{h.descripcion && <p className="text-[13px] text-[#5b615c]">{h.descripcion}</p>}
               {h.fotos.length > 0 && <div className="mt-1 flex gap-2">{h.fotos.map((f) => url.get(f) && <img key={f} src={url.get(f)} alt="" className="h-28 rounded object-cover" />)}</div>}</div>
           ))}
         </section>
       )}
 
       {a.notas && <section><h2 className="mb-2 border-b border-[#1c2521] pb-1 font-mono text-[13px] font-bold uppercase tracking-wider">Conclusiones</h2><p className="whitespace-pre-wrap">{a.notas}</p></section>}
-      <p className="mt-6 text-[11px] text-[#5b615c]">Escala: {ESCALA.map((e, i) => `${i} ${e.toLowerCase()}`).join(" · ")}. Los puntos sin valorar no cuentan en la nota.</p>
+      <p className="mt-6 text-[11px] text-[#5b615c]">Escala: {ESCALA.map((e, i) => `${i} ${e.toLowerCase()}`).join(" · ")}. Sí = 4 y No = 0; medición en objetivo = 4, fuera = 0. Los puntos sin valorar y las preguntas abiertas no cuentan en la nota.</p>
       <footer className="mt-6 border-t border-dashed border-[#5b615c] pt-2 text-[11px] text-[#5b615c]">{org?.nombre}</footer>
     </main>
   );

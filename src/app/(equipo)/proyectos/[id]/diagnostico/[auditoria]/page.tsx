@@ -18,9 +18,10 @@ export default async function Auditoria({ params }: { params: Promise<{ id: stri
   const { id, auditoria } = await params;
   const { supabase } = await getSesion();
   const editar = await puedeEditarProyecto(id);
-  const [{ data: a }, { data: resp }] = await Promise.all([
+  const [{ data: a }, { data: resp }, { data: necesidades }] = await Promise.all([
     supabase.from("auditorias").select("*").eq("id", auditoria).eq("proyecto_id", id).maybeSingle(),
     supabase.from("auditoria_respuestas").select("*").eq("auditoria_id", auditoria),
+    supabase.from("hallazgos").select("id, titulo, descripcion, tipo").eq("auditoria_id", auditoria).order("created_at"),
   ]);
   if (!a) notFound();
   const fotos = (resp ?? []).map((r) => r.foto_path).filter(Boolean) as string[];
@@ -45,9 +46,18 @@ export default async function Auditoria({ params }: { params: Promise<{ id: stri
       </div>
       <aside className="grid content-start gap-4 lg:sticky lg:top-20">
         <Card>
+          <CardHeader><CardTitle>Necesidades y hallazgos ({necesidades?.length ?? 0})</CardTitle></CardHeader>
+          {necesidades?.length ? (
+            <ul className="grid gap-2 text-sm">
+              {necesidades.map((n) => <li key={n.id} className="border-l-2 border-primary pl-2"><p className="font-medium">{n.titulo}</p>{n.descripcion && <p className="text-xs text-muted-foreground">{n.descripcion}</p>}</li>)}
+            </ul>
+          ) : <p className="text-sm text-muted-foreground">Pulsa el icono del portapapeles en cualquier punto para anotar lo que necesitan.</p>}
+          <p className="mt-2 text-xs text-muted-foreground">Las verás también en Diagnóstico, para priorizarlas y pasarlas al plan.</p>
+        </Card>
+        <Card>
           <CardHeader><CardTitle>Escala</CardTitle></CardHeader>
           <ol className="grid gap-1 text-sm">{ESCALA.map((e, i) => <li key={e}><span className="tnum mr-2 font-mono font-bold">{i}</span>{e}</li>)}</ol>
-          <p className="mt-2 text-xs text-muted-foreground">Deja sin valorar lo que no aplica: no cuenta en la nota.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Sí cuenta como 4 y No como 0; una medición dentro del objetivo, 4, y fuera, 0. Deja sin valorar lo que no aplica: no cuenta en la nota.</p>
         </Card>
         {editar && (
           <Card>

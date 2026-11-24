@@ -29,7 +29,7 @@ export function EditorPlantilla({ id, tipo, inicial }: { id: string | null; tipo
       </div>
       <EditorContenido valor={c} onChange={setC}
         placeholder={tipo === "auditoria" ? "Criterio observable: «Las cámaras se registran a diario»" : tipo === "sop" ? "Paso: qué se hace, cómo y con qué estándar" : "Lo que se comprueba"}
-        etiquetaPunto={tipo === "sop" ? "Paso" : "Punto"} />
+        etiquetaPunto={tipo === "sop" ? "Paso" : "Punto"} tipos={tipo === "auditoria"} />
       <div className="flex flex-wrap items-center justify-end gap-2">
         {msg && <span className={"text-sm " + (msg.ok ? "text-ok" : "text-bad")}>{msg.t}</span>}
         {id && <Button variant="outline" disabled={pend} onClick={() => start(async () => { await archivarPlantilla(id, !inicial.activa); router.refresh(); })}>{inicial.activa ? "Archivar" : "Reactivar"}</Button>}
