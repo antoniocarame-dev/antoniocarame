@@ -21,8 +21,10 @@ Supabase (Postgres, Auth, Storage, RLS) · Recharts.
 | Agenda | Visitas, auditorías, entregas, reuniones y formaciones |
 | Biblioteca | 8 plantillas de auditoría (cocina, compras, almacén, sala, carta, equipo, experiencia, APPCC) editables y versionadas |
 | Ajustes | Nombre de la consultora, tus datos y tarifa por hora |
+| Proyecto · Costes y compras | Subida de facturas y albaranes (PDF o foto) con lectura automática, revisión línea a línea, enlace a productos (aprende de facturas anteriores), histórico de precios, alertas de subida con platos afectados, comparativa de proveedores con ahorro anual estimado |
+| Proyecto · Escandallos y menú | Escandallos con merma y elaboraciones anidadas que se recalculan con el último precio de compra, food cost, margen, PVP recomendado según el objetivo del negocio, alérgenos, y matriz de ingeniería de menú (Estrella / Caballo / Puzzle / Perro) con las ventas mensuales por plato |
 
-Las pestañas de Costes, Escandallos, Ventas e Informes aparecen marcadas como Fase 2 y Fase 3.
+Las pestañas de Ventas y resultados e Informes aparecen marcadas como Fase 3. Los productos, facturas y escandallos son de cada negocio; los proveedores son tuyos y comunes a todos los clientes.
 
 ## Seguridad
 
@@ -30,6 +32,12 @@ Las pestañas de Costes, Escandallos, Ventas e Informes aparecen marcadas como F
 - Toda la seguridad está en la base de datos (RLS en `supabase/migrations`). El esquema conserva roles de colaborador y cliente por si algún día los necesitas, pero la interfaz no los usa.
 - Los documentos y fotos van a un bucket privado (`documentos`) con enlaces de descarga temporales.
 - Las tareas y acciones se asignan a ti o a un contacto del cliente por nombre. El campo «Incluir en los informes» marca qué hallazgos, KPIs, acciones y actas saldrán en los informes (fase 3).
+
+## Lectura automática de facturas
+
+Con `ANTHROPIC_API_KEY` configurada, al subir una factura o albarán se envía a Claude (modelo `claude-opus-5-5`, salida estructurada) y vuelve con proveedor, número, fecha, bases, IVA y líneas. Si el modelo rechaza la petición, la API la reintenta automáticamente con otro modelo (fallback del servidor). Nada cuenta hasta que lo validas en la pantalla de revisión: al validar, cada línea enlazada a un producto registra su precio y los escandallos se recalculan.
+
+Coste orientativo: una factura de una página son unos pocos miles de tokens de entrada, del orden de céntimos.
 
 ## Probar en local
 
@@ -67,5 +75,5 @@ Tipos de la base de datos: `npx supabase gen types typescript --local > src/lib/
 
 ## Próximas fases
 
-- **Fase 2**: proveedores, productos y precios; facturas y albaranes con lectura automática; escandallos ligados al último precio; ingeniería de menú; inventario y mermas; SOPs y checklists; registros APPCC por el personal.
+- **Fase 2 (pendiente)**: inventario y mermas por motivo; SOPs, checklists y formación.
 - **Fase 3**: importación de ventas, cuenta de resultados, prime cost, RevPASH, antes/después; informes PDF; horas y presupuestos; integración con TPV.

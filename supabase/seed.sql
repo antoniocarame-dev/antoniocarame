@@ -324,3 +324,128 @@ update acciones set responsable_externo = 'Manolo Sánchez' where id in ('f00000
 update tareas set responsable_externo = 'Manolo Sánchez' where titulo in ('Registrar descartes de pescado cada noche','Pedir presupuesto de segunda freidora','Enviar facturas de octubre a la consultora');
 update tareas set responsable_externo = 'Carmen Ruiz' where titulo in ('Exportar ventas por plato de los últimos 6 meses del TPV','Fotografiar la carta actual y la pizarra de sugerencias');
 
+
+-- =============================================================
+-- Fase 2 · Compras y escandallos de Freiduría El Varadero
+-- =============================================================
+insert into proveedores (id, organizacion_id, nombre, cif, categoria, contacto, email, telefono, condiciones)
+select v.id::uuid, o.id, v.n, v.cif, v.cat, v.con, v.mail, v.tel, v.cond from organizaciones o, (values
+ ('90000000-0000-0000-0000-000000000001','Pescados Bahía Sur','B11000001','Pescado y marisco','Paco','pedidos@pescadosbahiasur.test','956 100 100','Reparto diario 7:00. Pago a 15 días.'),
+ ('90000000-0000-0000-0000-000000000002','Lonja del Puerto Distribución','B11000002','Pescado y marisco','Inma','lonja@lonjapuerto.test','956 200 200','Reparto L-X-V. Pago al contado.'),
+ ('90000000-0000-0000-0000-000000000003','Aceites y Secos del Sur','B11000003','Aceites, harinas, secos','Rafa','comercial@aceitesdelsur.test','956 300 300','Pedido mínimo 150 €. Pago a 30 días.'),
+ ('90000000-0000-0000-0000-000000000004','Frutas Hermanos Gil','B11000004','Fruta y verdura','José Gil','pedidos@hermanosgil.test','600 400 400','Reparto diario. Pago semanal.')
+) as v(id,n,cif,cat,con,mail,tel,cond);
+
+create or replace function pg_temp.prod(nom text, fam text, un text, merma numeric, prov text, alerg text[] default '{}') returns uuid
+language sql as $$
+  insert into productos (negocio_id, nombre, familia, unidad, merma_pct, proveedor_habitual_id, alergenos)
+  values ('b0000000-0000-0000-0000-000000000001', nom, fam, un::unidad_compra, merma, prov::uuid, alerg) returning id
+$$;
+create or replace function pg_temp.precio(nom text, f date, p numeric, prov text) returns void
+language sql as $$
+  insert into precios (producto_id, proveedor_id, fecha, precio)
+  select id, prov::uuid, f, p from productos where nombre = nom and negocio_id = 'b0000000-0000-0000-0000-000000000001'
+$$;
+
+select pg_temp.prod('Chocos limpios','Pescado y marisco','kg',10,'90000000-0000-0000-0000-000000000001','{Moluscos}');
+select pg_temp.prod('Cazón en adobo','Pescado y marisco','kg',5,'90000000-0000-0000-0000-000000000001','{Pescado}');
+select pg_temp.prod('Boquerón fresco','Pescado y marisco','kg',35,'90000000-0000-0000-0000-000000000001','{Pescado}');
+select pg_temp.prod('Pijota','Pescado y marisco','kg',30,'90000000-0000-0000-0000-000000000002','{Pescado}');
+select pg_temp.prod('Gamba blanca de Huelva','Pescado y marisco','kg',45,'90000000-0000-0000-0000-000000000002','{Crustáceos}');
+select pg_temp.prod('Calamar nacional','Pescado y marisco','kg',25,'90000000-0000-0000-0000-000000000002','{Moluscos}');
+select pg_temp.prod('Harina especial fritura','Secos','kg',0,'90000000-0000-0000-0000-000000000003','{Gluten}');
+select pg_temp.prod('Aceite de girasol alto oleico','Aceites','l',0,'90000000-0000-0000-0000-000000000003');
+select pg_temp.prod('Aceite de oliva virgen extra','Aceites','l',0,'90000000-0000-0000-0000-000000000003');
+select pg_temp.prod('Vinagre de Jerez','Secos','l',0,'90000000-0000-0000-0000-000000000003','{Sulfitos}');
+select pg_temp.prod('Sal marina','Secos','kg',0,'90000000-0000-0000-0000-000000000003');
+select pg_temp.prod('Patata','Fruta y verdura','kg',20,'90000000-0000-0000-0000-000000000004');
+select pg_temp.prod('Tomate pera','Fruta y verdura','kg',10,'90000000-0000-0000-0000-000000000004');
+select pg_temp.prod('Pimiento verde','Fruta y verdura','kg',15,'90000000-0000-0000-0000-000000000004');
+select pg_temp.prod('Cebolla','Fruta y verdura','kg',10,'90000000-0000-0000-0000-000000000004');
+select pg_temp.prod('Limón','Fruta y verdura','kg',0,'90000000-0000-0000-0000-000000000004');
+
+-- Precios de junio a noviembre (subidas en pescado y aceite de girasol)
+select pg_temp.precio(n, d::date, p, prov) from (values
+ ('Chocos limpios','2026-06-10',11.50,'90000000-0000-0000-0000-000000000001'),('Chocos limpios','2026-08-12',11.90,'90000000-0000-0000-0000-000000000001'),('Chocos limpios','2026-10-14',12.40,'90000000-0000-0000-0000-000000000001'),
+ ('Cazón en adobo','2026-06-10',9.80,'90000000-0000-0000-0000-000000000001'),('Cazón en adobo','2026-09-09',10.20,'90000000-0000-0000-0000-000000000001'),
+ ('Boquerón fresco','2026-06-10',5.90,'90000000-0000-0000-0000-000000000001'),('Boquerón fresco','2026-09-09',6.30,'90000000-0000-0000-0000-000000000001'),
+ ('Boquerón fresco','2026-10-20',6.15,'90000000-0000-0000-0000-000000000002'),
+ ('Chocos limpios','2026-11-03',11.95,'90000000-0000-0000-0000-000000000002'),
+ ('Pijota','2026-06-10',8.20,'90000000-0000-0000-0000-000000000002'),('Pijota','2026-10-01',8.40,'90000000-0000-0000-0000-000000000002'),
+ ('Pijota','2026-08-20',7.60,'90000000-0000-0000-0000-000000000001'),
+ ('Gamba blanca de Huelva','2026-06-10',28.00,'90000000-0000-0000-0000-000000000002'),('Gamba blanca de Huelva','2026-09-09',29.50,'90000000-0000-0000-0000-000000000002'),
+ ('Calamar nacional','2026-06-10',14.50,'90000000-0000-0000-0000-000000000002'),('Calamar nacional','2026-09-23',14.90,'90000000-0000-0000-0000-000000000002'),
+ ('Calamar nacional','2026-08-05',13.80,'90000000-0000-0000-0000-000000000001'),
+ ('Harina especial fritura','2026-06-03',1.15,'90000000-0000-0000-0000-000000000003'),
+ ('Aceite de girasol alto oleico','2026-06-03',1.85,'90000000-0000-0000-0000-000000000003'),('Aceite de girasol alto oleico','2026-09-02',1.98,'90000000-0000-0000-0000-000000000003'),
+ ('Aceite de oliva virgen extra','2026-06-03',7.20,'90000000-0000-0000-0000-000000000003'),('Aceite de oliva virgen extra','2026-09-02',6.40,'90000000-0000-0000-0000-000000000003'),
+ ('Vinagre de Jerez','2026-06-03',3.20,'90000000-0000-0000-0000-000000000003'),
+ ('Sal marina','2026-06-03',0.50,'90000000-0000-0000-0000-000000000003'),
+ ('Patata','2026-06-05',0.85,'90000000-0000-0000-0000-000000000004'),('Patata','2026-10-07',0.92,'90000000-0000-0000-0000-000000000004'),
+ ('Tomate pera','2026-06-05',1.60,'90000000-0000-0000-0000-000000000004'),('Tomate pera','2026-10-07',1.95,'90000000-0000-0000-0000-000000000004'),
+ ('Pimiento verde','2026-06-05',1.90,'90000000-0000-0000-0000-000000000004'),
+ ('Cebolla','2026-06-05',0.95,'90000000-0000-0000-0000-000000000004'),
+ ('Limón','2026-06-05',1.40,'90000000-0000-0000-0000-000000000004')
+) as v(n,d,p,prov);
+
+-- Dos facturas de noviembre ya validadas (generan precios) y una pendiente de revisar
+insert into facturas (id, negocio_id, proveedor_id, tipo, numero, fecha, base, iva, total, estado) values
+ ('91000000-0000-0000-0000-000000000001','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000001','factura','PBS-2026-1187','2026-11-12',612.40,61.24,673.64,'pendiente'),
+ ('91000000-0000-0000-0000-000000000002','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000003','factura','AS/26/4410','2026-11-04',318.00,49.88,367.88,'pendiente'),
+ ('91000000-0000-0000-0000-000000000003','b0000000-0000-0000-0000-000000000001','90000000-0000-0000-0000-000000000004','albaran','HG-88213','2026-11-20',96.60,9.66,106.26,'pendiente');
+
+insert into lineas_factura (factura_id, orden, producto_id, descripcion, cantidad, unidad, precio_unitario, iva_pct, importe)
+select f::uuid, o, (select id from productos where nombre = pn and negocio_id = 'b0000000-0000-0000-0000-000000000001'), d, c, u, pu, iva, round(c * pu, 2) from (values
+ ('91000000-0000-0000-0000-000000000001',1,'Chocos limpios','CHOCO LIMPIO CAL. 2 (KG)',20,'kg',12.90,10),
+ ('91000000-0000-0000-0000-000000000001',2,'Cazón en adobo','CAZON ADOBADO BANDEJA (KG)',15,'kg',10.60,10),
+ ('91000000-0000-0000-0000-000000000001',3,'Boquerón fresco','BOQUERON MALAGUEÑO (KG)',18,'kg',6.80,10),
+ ('91000000-0000-0000-0000-000000000002',1,'Aceite de girasol alto oleico','ACEITE GIRASOL A.O. GARRAFA 25L',100,'l',2.15,10),
+ ('91000000-0000-0000-0000-000000000002',2,'Harina especial fritura','HARINA FRITURA SACO 10KG',20,'kg',1.15,4),
+ ('91000000-0000-0000-0000-000000000002',3,'Vinagre de Jerez','VINAGRE JEREZ 5L',10,'l',3.30,21),
+ ('91000000-0000-0000-0000-000000000003',1,'Tomate pera','TOMATE PERA',25,'kg',1.95,4),
+ ('91000000-0000-0000-0000-000000000003',2,'Patata','PATATA AGRIA SACO 25KG',50,'kg',0.92,4)
+) as v(f,o,pn,d,c,u,pu,iva);
+select validar_factura('91000000-0000-0000-0000-000000000001');
+select validar_factura('91000000-0000-0000-0000-000000000002');
+
+-- Escandallos
+insert into escandallos (id, negocio_id, tipo, nombre, categoria, raciones, rendimiento, unidad_rendimiento, pvp, elaboracion) values
+ ('92000000-0000-0000-0000-000000000001','b0000000-0000-0000-0000-000000000001','elaboracion','Picadillo','Bases',1,2,'kg',null,'Tomate, pimiento y cebolla en brunoise. Aliñar con aceite y vinagre de Jerez. Reposo 2 h.'),
+ ('92000000-0000-0000-0000-000000000002','b0000000-0000-0000-0000-000000000001','plato','Chocos fritos','Fritos',1,null,null,14.00,'Cortar en tiras, enharinar, sacudir y freír a 180 °C.'),
+ ('92000000-0000-0000-0000-000000000003','b0000000-0000-0000-0000-000000000001','plato','Cazón en adobo','Fritos',1,null,null,12.00,null),
+ ('92000000-0000-0000-0000-000000000004','b0000000-0000-0000-0000-000000000001','plato','Boquerones fritos','Fritos',1,null,null,10.00,null),
+ ('92000000-0000-0000-0000-000000000005','b0000000-0000-0000-0000-000000000001','plato','Gambas a la plancha','Plancha',1,null,null,18.00,null),
+ ('92000000-0000-0000-0000-000000000006','b0000000-0000-0000-0000-000000000001','plato','Calamares fritos','Fritos',1,null,null,15.00,null),
+ ('92000000-0000-0000-0000-000000000007','b0000000-0000-0000-0000-000000000001','plato','Papas aliñás','Frías',1,null,null,6.50,null),
+ ('92000000-0000-0000-0000-000000000008','b0000000-0000-0000-0000-000000000001','plato','Pijotas fritas','Fritos',1,null,null,13.00,null);
+
+insert into ingredientes_escandallo (escandallo_id, orden, producto_id, sub_escandallo_id, cantidad)
+select e::uuid, o, (select id from productos where nombre = pn and negocio_id = 'b0000000-0000-0000-0000-000000000001'), sub::uuid, c from (values
+ ('92000000-0000-0000-0000-000000000001',1,'Tomate pera',null,1.2),('92000000-0000-0000-0000-000000000001',2,'Pimiento verde',null,0.5),
+ ('92000000-0000-0000-0000-000000000001',3,'Cebolla',null,0.5),('92000000-0000-0000-0000-000000000001',4,'Aceite de oliva virgen extra',null,0.15),
+ ('92000000-0000-0000-0000-000000000001',5,'Vinagre de Jerez',null,0.05),
+ ('92000000-0000-0000-0000-000000000002',1,'Chocos limpios',null,0.25),('92000000-0000-0000-0000-000000000002',2,'Harina especial fritura',null,0.04),
+ ('92000000-0000-0000-0000-000000000002',3,'Aceite de girasol alto oleico',null,0.06),('92000000-0000-0000-0000-000000000002',4,'Limón',null,0.03),
+ ('92000000-0000-0000-0000-000000000003',1,'Cazón en adobo',null,0.25),('92000000-0000-0000-0000-000000000003',2,'Harina especial fritura',null,0.04),
+ ('92000000-0000-0000-0000-000000000003',3,'Aceite de girasol alto oleico',null,0.06),
+ ('92000000-0000-0000-0000-000000000004',1,'Boquerón fresco',null,0.30),('92000000-0000-0000-0000-000000000004',2,'Harina especial fritura',null,0.04),
+ ('92000000-0000-0000-0000-000000000004',3,'Aceite de girasol alto oleico',null,0.06),
+ ('92000000-0000-0000-0000-000000000005',1,'Gamba blanca de Huelva',null,0.25),('92000000-0000-0000-0000-000000000005',2,'Sal marina',null,0.005),
+ ('92000000-0000-0000-0000-000000000005',3,'Aceite de oliva virgen extra',null,0.01),
+ ('92000000-0000-0000-0000-000000000006',1,'Calamar nacional',null,0.25),('92000000-0000-0000-0000-000000000006',2,'Harina especial fritura',null,0.04),
+ ('92000000-0000-0000-0000-000000000006',3,'Aceite de girasol alto oleico',null,0.06),
+ ('92000000-0000-0000-0000-000000000007',1,'Patata',null,0.30),('92000000-0000-0000-0000-000000000007',2,null,'92000000-0000-0000-0000-000000000001',0.10),
+ ('92000000-0000-0000-0000-000000000007',3,'Aceite de oliva virgen extra',null,0.02),
+ ('92000000-0000-0000-0000-000000000008',1,'Pijota',null,0.30),('92000000-0000-0000-0000-000000000008',2,'Harina especial fritura',null,0.04),
+ ('92000000-0000-0000-0000-000000000008',3,'Aceite de girasol alto oleico',null,0.06)
+) as v(e,o,pn,sub,c);
+
+insert into ventas_plato (escandallo_id, periodo, unidades) values
+ ('92000000-0000-0000-0000-000000000002','2026-10-01',640),('92000000-0000-0000-0000-000000000003','2026-10-01',520),
+ ('92000000-0000-0000-0000-000000000004','2026-10-01',410),('92000000-0000-0000-0000-000000000005','2026-10-01',95),
+ ('92000000-0000-0000-0000-000000000006','2026-10-01',380),('92000000-0000-0000-0000-000000000007','2026-10-01',300),
+ ('92000000-0000-0000-0000-000000000008','2026-10-01',120),
+ ('92000000-0000-0000-0000-000000000002','2026-11-01',590),('92000000-0000-0000-0000-000000000003','2026-11-01',505),
+ ('92000000-0000-0000-0000-000000000004','2026-11-01',360),('92000000-0000-0000-0000-000000000005','2026-11-01',80),
+ ('92000000-0000-0000-0000-000000000006','2026-11-01',350),('92000000-0000-0000-0000-000000000007','2026-11-01',280),
+ ('92000000-0000-0000-0000-000000000008','2026-11-01',105);

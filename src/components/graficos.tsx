@@ -101,3 +101,39 @@ export function MatrizPrioridades({ puntos }: { puntos: { id: string; titulo: st
     </div>
   );
 }
+
+/** Ingeniería de menú: popularidad (mix de ventas) frente a margen por ración. */
+export function MatrizMenu({ puntos, umbralMix, margenMedio }: {
+  puntos: { nombre: string; mix: number; margen: number; clase: string }[]; umbralMix: number; margenMedio: number;
+}) {
+  const color: Record<string, string> = { estrella: "var(--ok)", caballo: "var(--accent)", puzzle: "var(--chart-2)", perro: "var(--bad)" };
+  const datos = puntos.map((p) => ({ ...p, x: Math.round(p.mix * 1000) / 10, y: Math.round(p.margen * 100) / 100 }));
+  const maxX = Math.max(umbralMix * 100 * 2, ...datos.map((d) => d.x)) * 1.1;
+  return (
+    <div className="relative h-80 w-full">
+      <div className="pointer-events-none absolute inset-0 grid grid-cols-2 grid-rows-2 pb-8 pl-12 pr-3 pt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="p-2">Puzzle</span><span className="p-2 text-right">Estrella</span>
+        <span className="self-end p-2">Perro</span><span className="self-end p-2 text-right">Caballo</span>
+      </div>
+      <ResponsiveContainer>
+        <ScatterChart margin={{ top: 8, right: 12, bottom: 8, left: -4 }}>
+          <CartesianGrid stroke="var(--border)" />
+          <XAxis type="number" dataKey="x" domain={[0, Math.ceil(maxX)]} tick={eje} unit=" %"
+            label={{ value: "Popularidad (mix de ventas) →", position: "insideBottomRight", offset: -4, fill: "var(--muted-foreground)", fontSize: 11 }} />
+          <YAxis type="number" dataKey="y" tick={eje} unit=" €" width={56}
+            label={{ value: "Margen por ración →", angle: -90, position: "insideLeft", offset: 14, fill: "var(--muted-foreground)", fontSize: 11 }} />
+          <ZAxis range={[110, 110]} />
+          <ReferenceLine x={Math.round(umbralMix * 1000) / 10} stroke="var(--input)" strokeDasharray="4 3" />
+          <ReferenceLine y={Math.round(margenMedio * 100) / 100} stroke="var(--input)" strokeDasharray="4 3" />
+          <Scatter data={datos} isAnimationActive={false} shape={(props: { cx?: number; cy?: number; payload?: { clase: string } }) =>
+            <circle cx={props.cx} cy={props.cy} r={7} fill={color[props.payload?.clase ?? ""] ?? "var(--chart-1)"} fillOpacity={0.9} stroke="var(--card)" strokeWidth={1.5} />} />
+          <Tooltip {...tip} cursor={false}
+            content={({ payload }) => {
+              const p = payload?.[0]?.payload as (typeof datos)[number] | undefined;
+              return p ? <div className="rounded-sm border bg-card px-2.5 py-1.5 text-xs shadow"><b>{p.nombre}</b><br />Mix {p.x.toLocaleString("es-ES")} % · margen {p.y.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</div> : null;
+            }} />
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

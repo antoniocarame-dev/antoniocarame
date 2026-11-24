@@ -1,0 +1,31 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { EditorEscandallo } from "@/components/escandallos/editor";
+import { cargarEscandallos } from "@/lib/negocio";
+
+export default async function EditarEscandallo({ params, searchParams }: { params: Promise<{ id: string; escandallo: string }>; searchParams: Promise<{ tipo?: string }> }) {
+  const { id, escandallo } = await params;
+  const { tipo } = await searchParams;
+  const { negocio, productos, escandallos, calculos, objetivo } = await cargarEscandallos(id);
+  const nuevo = escandallo === "nuevo";
+  const e = nuevo ? null : escandallos.find((x) => x.id === escandallo);
+  if (!nuevo && !e) notFound();
+  const esElab = (e?.tipo ?? (tipo === "elaboracion" ? "elaboracion" : "plato")) === "elaboracion";
+  const volver = `/proyectos/${id}/escandallos?v=${esElab ? "elaboraciones" : "platos"}`;
+  const usadoEn = e ? escandallos.filter((x) => x.ingredientes_escandallo.some((i) => i.sub_escandallo_id === e.id)).map((x) => x.nombre) : [];
+
+  return (
+    <div>
+      <Link href={volver} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />{esElab ? "Elaboraciones" : "Platos"}</Link>
+      <h2 className="mb-4 font-mono text-lg font-bold">{e?.nombre ?? (esElab ? "Nueva elaboración" : "Nuevo plato")}</h2>
+      <EditorEscandallo id={e?.id ?? null} negocioId={negocio.id} objetivo={objetivo} volver={volver} usadoEn={usadoEn}
+        inicial={{ tipo: e?.tipo ?? (esElab ? "elaboracion" : "plato"), nombre: e?.nombre ?? "", categoria: e?.categoria ?? null, raciones: Number(e?.raciones ?? 1),
+          rendimiento: e?.rendimiento == null ? null : Number(e.rendimiento), unidad_rendimiento: e?.unidad_rendimiento ?? (esElab ? "kg" : null),
+          pvp: e?.pvp == null ? null : Number(e.pvp), iva_pct: Number(e?.iva_pct ?? 10), elaboracion: e?.elaboracion ?? null }}
+        ingredientes={(e?.ingredientes_escandallo ?? []).sort((a, b) => a.orden - b.orden).map((i) => ({ producto_id: i.producto_id, sub_escandallo_id: i.sub_escandallo_id, cantidad: Number(i.cantidad), merma_pct: i.merma_pct == null ? null : Number(i.merma_pct) }))}
+        productos={productos.filter((p) => p.activo).map((p) => ({ id: p.id!, nombre: p.nombre!, unidad: p.unidad!, precio: p.precio_actual == null ? null : Number(p.precio_actual), merma: Number(p.merma_pct ?? 0), alergenos: p.alergenos ?? [] }))}
+        elaboraciones={escandallos.filter((x) => x.tipo === "elaboracion" && x.id !== e?.id).map((x) => { const c = calculos.get(x.id)!; return { id: x.id, nombre: x.nombre, unidad: x.unidad_rendimiento ?? "ud", costePorUnidad: c.costePorUnidad ?? c.costeRacion, alergenos: c.alergenos }; })} />
+    </div>
+  );
+}

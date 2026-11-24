@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Kpi, Semaforo, EstadoProyecto, Progreso } from "@/components/piezas";
 import { Vacio } from "@/components/ui/vacio";
 import { requiereEquipo } from "@/lib/sesion";
-import { estadoKpi, fecha, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO } from "@/lib/utils";
+import { estadoKpi, eur, fecha, fechaCorta, hora, numero, TIPOS_EVENTO, valorKpi, diasHasta, ESTADOS_PROYECTO } from "@/lib/utils";
 
 export const metadata = { title: "Panel" };
 
@@ -14,13 +14,17 @@ export default async function Panel() {
   const { supabase, esAdmin, perfil } = await requiereEquipo();
   const ahora = new Date();
   const en14 = new Date(ahora.getTime() + 14 * 864e5);
-  const [{ data: proyectos }, { data: perfiles }, { data: finanzas }, { data: kpis }, { data: eventos }] = await Promise.all([
+  const hace60 = new Date(ahora.getTime() - 60 * 864e5).toISOString().slice(0, 10);
+  const [{ data: proyectos }, { data: perfiles }, { data: finanzas }, { data: kpis }, { data: eventos }, { data: subidas }, { data: porRevisar }] = await Promise.all([
     supabase.from("v_proyectos_resumen").select("*").order("fecha_fin", { nullsFirst: false }),
     supabase.from("perfiles").select("id, nombre"),
     esAdmin ? supabase.from("proyecto_finanzas").select("*") : Promise.resolve({ data: [] as never[] }),
     supabase.from("kpis").select("id, nombre, unidad, objetivo, valor_base, sentido, proyecto_id, kpi_valores(periodo, valor)"),
     supabase.from("eventos").select("*, proyectos(titulo)").gte("inicio", ahora.toISOString()).lte("inicio", en14.toISOString()).order("inicio"),
+    supabase.from("v_productos_precio").select("id, nombre, unidad, precio_actual, precio_anterior, variacion_pct, fecha_precio, negocio_id").gte("variacion_pct", 5).gte("fecha_precio", hace60).order("variacion_pct", { ascending: false }).limit(8),
+    supabase.from("facturas").select("negocio_id").eq("estado", "pendiente"),
   ]);
+  const proyectoDeNegocio = (nid: string | null) => (proyectos ?? []).find((p) => p.negocio_id === nid && p.estado !== "cerrado");
   const nombre = (id: string | null) => perfiles?.find((p) => p.id === id)?.nombre ?? "—";
   const activos = (proyectos ?? []).filter((p) => p.estado !== "cerrado");
   const vencidas = activos.reduce((a, p) => a + (p.tareas_vencidas ?? 0), 0);
@@ -47,7 +51,7 @@ export default async function Panel() {
           ? <Kpi label="Horas consumidas" valor={numero(horasC, 0)} ayuda={`de ${numero(horasP, 0)} presupuestadas · ${facturable.toLocaleString("es-ES")} € en cartera`} tono={horasC > horasP ? "bad" : undefined} />
           : <Kpi label="Tareas abiertas" valor={activos.reduce((a, p) => a + (p.tareas_total ?? 0) - (p.tareas_hechas ?? 0), 0)} />}
         <Kpi label="Tareas vencidas" valor={vencidas} tono={vencidas ? "bad" : "ok"} ayuda="sin cerrar y fuera de fecha" />
-        <Kpi label="Alertas de KPIs" valor={alertas.length} tono={alertas.length ? "warn" : "ok"} ayuda="indicadores fuera de objetivo" />
+        <Kpi label="Alertas" valor={alertas.length + (subidas?.length ?? 0)} tono={alertas.length + (subidas?.length ?? 0) ? "warn" : "ok"} ayuda={`${alertas.length} KPIs fuera de objetivo · ${subidas?.length ?? 0} subidas de precio · ${porRevisar?.length ?? 0} facturas por revisar`} />
       </div>
 
       <div className="grid gap-4">
@@ -76,7 +80,7 @@ export default async function Panel() {
           </div>
         </Card>
 
-        <div className="grid content-start gap-4 lg:grid-cols-3">
+        <div className="grid content-start gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-2"><CalendarDays className="size-4" />Próximos 14 días</CardTitle><Link href="/agenda" className="text-sm text-primary-ink hover:underline">Agenda</Link></CardHeader>
             {eventos?.length ? (
@@ -102,6 +106,23 @@ export default async function Panel() {
                 ))}
               </ul>
             ) : <p className="text-sm text-muted-foreground">Todos los indicadores están en objetivo.</p>}
+          </Card>
+          <Card>
+            <CardHeader><CardTitle>Subidas de precio</CardTitle><span className="text-xs text-muted-foreground">≥ 5 % · últimos 60 días</span></CardHeader>
+            {subidas?.length ? (
+              <ul className="divide-y">
+                {subidas.map((x) => {
+                  const p = proyectoDeNegocio(x.negocio_id);
+                  return (
+                    <li key={x.id} className="flex items-center justify-between gap-3 py-2.5">
+                      <div className="min-w-0">{p ? <Link href={`/proyectos/${p.id}/costes?v=productos`} className="font-medium hover:text-primary-ink">{x.nombre}</Link> : <span className="font-medium">{x.nombre}</span>}
+                        <p className="text-xs text-muted-foreground">{p?.negocio_nombre ?? ""} · {eur(Number(x.precio_anterior), 2)} → {eur(Number(x.precio_actual), 2)}/{x.unidad}</p></div>
+                      <Badge tono="bad">+{numero(Number(x.variacion_pct), 1)} %</Badge>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Sin subidas relevantes.</p>}
           </Card>
           <Card>
             <CardHeader><CardTitle>Entregas</CardTitle></CardHeader>

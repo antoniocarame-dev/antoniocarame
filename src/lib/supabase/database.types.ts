@@ -279,6 +279,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"escandallos": {
+                  Row: {
+                    "activo": boolean,"categoria": string | null,"created_at": string,"elaboracion": string | null,"id": string,"iva_pct": number,"negocio_id": string,"nombre": string,"pvp": number | null,"raciones": number,"rendimiento": number | null,"tipo": Database["public"]['Enums']["tipo_escandallo"],"unidad_rendimiento": Database["public"]['Enums']["unidad_compra"] | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "activo"?: boolean,"categoria"?: string | null,"created_at"?: string,"elaboracion"?: string | null,"id"?: string,"iva_pct"?: number,"negocio_id": string,"nombre": string,"pvp"?: number | null,"raciones"?: number,"rendimiento"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_escandallo"],"unidad_rendimiento"?: Database["public"]['Enums']["unidad_compra"] | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "activo"?: boolean,"categoria"?: string | null,"created_at"?: string,"elaboracion"?: string | null,"id"?: string,"iva_pct"?: number,"negocio_id"?: string,"nombre"?: string,"pvp"?: number | null,"raciones"?: number,"rendimiento"?: number | null,"tipo"?: Database["public"]['Enums']["tipo_escandallo"],"unidad_rendimiento"?: Database["public"]['Enums']["unidad_compra"] | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "escandallos_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"eventos": {
                   Row: {
                     "creado_por": string | null,"created_at": string,"fin": string | null,"id": string,"inicio": string,"lugar": string | null,"notas": string | null,"organizacion_id": string,"proyecto_id": string | null,"tipo": Database["public"]['Enums']["tipo_evento"],"titulo": string
@@ -314,6 +334,32 @@ isOneToOne: false
       columns: ["proyecto_id"]
 isOneToOne: false
       referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"facturas": {
+                  Row: {
+                    "archivo_path": string | null,"base": number | null,"created_at": string,"estado": Database["public"]['Enums']["estado_factura"],"extraccion": Json | null,"fecha": string | null,"id": string,"iva": number | null,"negocio_id": string,"notas": string | null,"numero": string | null,"proveedor_id": string | null,"tipo": Database["public"]['Enums']["tipo_documento_compra"],"total": number | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archivo_path"?: string | null,"base"?: number | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_factura"],"extraccion"?: Json | null,"fecha"?: string | null,"id"?: string,"iva"?: number | null,"negocio_id": string,"notas"?: string | null,"numero"?: string | null,"proveedor_id"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_documento_compra"],"total"?: number | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "archivo_path"?: string | null,"base"?: number | null,"created_at"?: string,"estado"?: Database["public"]['Enums']["estado_factura"],"extraccion"?: Json | null,"fecha"?: string | null,"id"?: string,"iva"?: number | null,"negocio_id"?: string,"notas"?: string | null,"numero"?: string | null,"proveedor_id"?: string | null,"tipo"?: Database["public"]['Enums']["tipo_documento_compra"],"total"?: number | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "facturas_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "facturas_proveedor_id_fkey"
+      columns: ["proveedor_id"]
+isOneToOne: false
+      referencedRelation: "proveedores"
       referencedColumns: ["id"]
     }
                   ]
@@ -439,6 +485,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ingredientes_escandallo": {
+                  Row: {
+                    "cantidad": number,"escandallo_id": string,"id": string,"merma_pct": number | null,"orden": number,"producto_id": string | null,"sub_escandallo_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cantidad": number,"escandallo_id": string,"id"?: string,"merma_pct"?: number | null,"orden"?: number,"producto_id"?: string | null,"sub_escandallo_id"?: string | null
+                  }
+                  Update: {
+                    "cantidad"?: number,"escandallo_id"?: string,"id"?: string,"merma_pct"?: number | null,"orden"?: number,"producto_id"?: string | null,"sub_escandallo_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredientes_escandallo_escandallo_id_fkey"
+      columns: ["escandallo_id"]
+isOneToOne: false
+      referencedRelation: "escandallos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ingredientes_escandallo_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "productos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ingredientes_escandallo_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "v_productos_precio"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ingredientes_escandallo_sub_escandallo_id_fkey"
+      columns: ["sub_escandallo_id"]
+isOneToOne: false
+      referencedRelation: "escandallos"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"kpi_valores": {
                   Row: {
                     "fuente": string,"id": string,"kpi_id": string,"nota": string | null,"periodo": string,"valor": number
@@ -482,6 +566,38 @@ isOneToOne: false
       columns: ["proyecto_id"]
 isOneToOne: false
       referencedRelation: "v_proyectos_resumen"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"lineas_factura": {
+                  Row: {
+                    "cantidad": number,"descripcion": string,"descuento_pct": number,"factura_id": string,"id": string,"importe": number | null,"iva_pct": number | null,"orden": number,"precio_unitario": number,"producto_id": string | null,"unidad": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cantidad"?: number,"descripcion": string,"descuento_pct"?: number,"factura_id": string,"id"?: string,"importe"?: number | null,"iva_pct"?: number | null,"orden"?: number,"precio_unitario"?: number,"producto_id"?: string | null,"unidad"?: string | null
+                  }
+                  Update: {
+                    "cantidad"?: number,"descripcion"?: string,"descuento_pct"?: number,"factura_id"?: string,"id"?: string,"importe"?: number | null,"iva_pct"?: number | null,"orden"?: number,"precio_unitario"?: number,"producto_id"?: string | null,"unidad"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lineas_factura_factura_id_fkey"
+      columns: ["factura_id"]
+isOneToOne: false
+      referencedRelation: "facturas"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "lineas_factura_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "productos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "lineas_factura_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "v_productos_precio"
       referencedColumns: ["id"]
     }
                   ]
@@ -553,6 +669,90 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "plantillas_organizacion_id_fkey"
+      columns: ["organizacion_id"]
+isOneToOne: false
+      referencedRelation: "organizaciones"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"precios": {
+                  Row: {
+                    "cantidad": number | null,"created_at": string,"fecha": string,"id": string,"linea_factura_id": string | null,"precio": number,"producto_id": string,"proveedor_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cantidad"?: number | null,"created_at"?: string,"fecha": string,"id"?: string,"linea_factura_id"?: string | null,"precio": number,"producto_id": string,"proveedor_id"?: string | null
+                  }
+                  Update: {
+                    "cantidad"?: number | null,"created_at"?: string,"fecha"?: string,"id"?: string,"linea_factura_id"?: string | null,"precio"?: number,"producto_id"?: string,"proveedor_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "precios_linea_factura_id_fkey"
+      columns: ["linea_factura_id"]
+isOneToOne: false
+      referencedRelation: "lineas_factura"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "precios_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "productos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "precios_producto_id_fkey"
+      columns: ["producto_id"]
+isOneToOne: false
+      referencedRelation: "v_productos_precio"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "precios_proveedor_id_fkey"
+      columns: ["proveedor_id"]
+isOneToOne: false
+      referencedRelation: "proveedores"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"productos": {
+                  Row: {
+                    "activo": boolean,"alergenos": (string)[],"created_at": string,"familia": string,"formato": string | null,"id": string,"merma_pct": number,"negocio_id": string,"nombre": string,"proveedor_habitual_id": string | null,"unidad": Database["public"]['Enums']["unidad_compra"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "activo"?: boolean,"alergenos"?: (string)[],"created_at"?: string,"familia"?: string,"formato"?: string | null,"id"?: string,"merma_pct"?: number,"negocio_id": string,"nombre": string,"proveedor_habitual_id"?: string | null,"unidad"?: Database["public"]['Enums']["unidad_compra"]
+                  }
+                  Update: {
+                    "activo"?: boolean,"alergenos"?: (string)[],"created_at"?: string,"familia"?: string,"formato"?: string | null,"id"?: string,"merma_pct"?: number,"negocio_id"?: string,"nombre"?: string,"proveedor_habitual_id"?: string | null,"unidad"?: Database["public"]['Enums']["unidad_compra"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "productos_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "productos_proveedor_habitual_id_fkey"
+      columns: ["proveedor_habitual_id"]
+isOneToOne: false
+      referencedRelation: "proveedores"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"proveedores": {
+                  Row: {
+                    "categoria": string | null,"cif": string | null,"condiciones": string | null,"contacto": string | null,"created_at": string,"email": string | null,"id": string,"nombre": string,"organizacion_id": string,"telefono": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "categoria"?: string | null,"cif"?: string | null,"condiciones"?: string | null,"contacto"?: string | null,"created_at"?: string,"email"?: string | null,"id"?: string,"nombre": string,"organizacion_id": string,"telefono"?: string | null
+                  }
+                  Update: {
+                    "categoria"?: string | null,"cif"?: string | null,"condiciones"?: string | null,"contacto"?: string | null,"created_at"?: string,"email"?: string | null,"id"?: string,"nombre"?: string,"organizacion_id"?: string,"telefono"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "proveedores_organizacion_id_fkey"
       columns: ["organizacion_id"]
 isOneToOne: false
       referencedRelation: "organizaciones"
@@ -687,10 +887,56 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ventas_plato": {
+                  Row: {
+                    "escandallo_id": string,"periodo": string,"unidades": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "escandallo_id": string,"periodo": string,"unidades": number
+                  }
+                  Update: {
+                    "escandallo_id"?: string,"periodo"?: string,"unidades"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ventas_plato_escandallo_id_fkey"
+      columns: ["escandallo_id"]
+isOneToOne: false
+      referencedRelation: "escandallos"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
-            "v_proyectos_resumen": {
+            "v_productos_precio": {
+                  Row: {
+                    "activo": boolean,"alergenos": (string)[],"created_at": string,"familia": string,"fecha_precio": string | null,"fecha_precio_anterior": string | null,"formato": string | null,"id": string,"merma_pct": number,"negocio_id": string,"nombre": string,"precio_actual": number | null,"precio_anterior": number | null,"proveedor_habitual_id": string | null,"proveedor_ultimo_id": string | null,"unidad": Database["public"]['Enums']["unidad_compra"],"variacion_pct": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "precios_proveedor_id_fkey"
+      columns: ["proveedor_ultimo_id"]
+isOneToOne: false
+      referencedRelation: "proveedores"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "productos_negocio_id_fkey"
+      columns: ["negocio_id"]
+isOneToOne: false
+      referencedRelation: "negocios"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "productos_proveedor_habitual_id_fkey"
+      columns: ["proveedor_habitual_id"]
+isOneToOne: false
+      referencedRelation: "proveedores"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"v_proyectos_resumen": {
                   Row: {
                     "codigo": string | null,"estado": Database["public"]['Enums']["estado_proyecto"],"fase_actual": string | null,"fecha_fin": string | null,"fecha_inicio": string | null,"id": string,"negocio_id": string,"negocio_localidad": string | null,"negocio_nombre": string,"responsable_id": string | null,"salud": Database["public"]['Enums']["salud_proyecto"],"tareas_hechas": number | null,"tareas_total": number | null,"tareas_vencidas": number | null,"tipo": string,"titulo": string
                   }
@@ -757,10 +1003,13 @@ isOneToOne: false
                            },
 "storage_puede_ver":
 { Args: { "nombre": string }; Returns: boolean
+                           },
+"validar_factura":
+{ Args: { "f": string }; Returns: number
                            }
           }
           Enums: {
-            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe"
+            "area_auditoria": "sala"|"cocina"|"compras"|"almacen"|"carta"|"equipo"|"experiencia_cliente"|"appcc","entidad_comentario": "tarea"|"documento"|"accion"|"hallazgo"|"acta","estado_auditoria": "borrador"|"completada","estado_factura": "pendiente"|"validada","estado_fase": "pendiente"|"en_curso"|"completada","estado_informe": "borrador"|"enviado","estado_proyecto": "diagnostico"|"en_curso"|"seguimiento"|"cerrado","estado_tarea": "pendiente"|"en_curso"|"bloqueada"|"hecha","fase_pdca": "planificar"|"hacer"|"verificar"|"actuar","prioridad": "baja"|"media"|"alta","rol_global": "admin"|"colaborador"|"cliente"|"personal","rol_proyecto": "consultor"|"colaborador"|"cliente"|"personal","salud_proyecto": "verde"|"ambar"|"rojo","sentido_kpi": "subir"|"bajar","tipo_dafo": "debilidad"|"amenaza"|"fortaleza"|"oportunidad","tipo_documento_compra": "factura"|"albaran","tipo_escandallo": "plato"|"elaboracion","tipo_evento": "visita"|"auditoria"|"entrega"|"reunion"|"formacion","tipo_hallazgo": "muda"|"dafo"|"observacion","tipo_informe": "diagnostico"|"seguimiento"|"cierre","tipo_muda": "sobreproduccion"|"esperas"|"transporte"|"sobreprocesos"|"inventario"|"movimientos"|"defectos_mermas","tipo_negocio": "restaurante"|"bar"|"cafeteria"|"dark_kitchen"|"hotel"|"grupo"|"catering"|"otro","tipo_plantilla": "auditoria"|"sop"|"checklist"|"informe","unidad_compra": "kg"|"l"|"ud"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -880,7 +1129,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"]
+            "area_auditoria": ["sala", "cocina", "compras", "almacen", "carta", "equipo", "experiencia_cliente", "appcc"],"entidad_comentario": ["tarea", "documento", "accion", "hallazgo", "acta"],"estado_auditoria": ["borrador", "completada"],"estado_factura": ["pendiente", "validada"],"estado_fase": ["pendiente", "en_curso", "completada"],"estado_informe": ["borrador", "enviado"],"estado_proyecto": ["diagnostico", "en_curso", "seguimiento", "cerrado"],"estado_tarea": ["pendiente", "en_curso", "bloqueada", "hecha"],"fase_pdca": ["planificar", "hacer", "verificar", "actuar"],"prioridad": ["baja", "media", "alta"],"rol_global": ["admin", "colaborador", "cliente", "personal"],"rol_proyecto": ["consultor", "colaborador", "cliente", "personal"],"salud_proyecto": ["verde", "ambar", "rojo"],"sentido_kpi": ["subir", "bajar"],"tipo_dafo": ["debilidad", "amenaza", "fortaleza", "oportunidad"],"tipo_documento_compra": ["factura", "albaran"],"tipo_escandallo": ["plato", "elaboracion"],"tipo_evento": ["visita", "auditoria", "entrega", "reunion", "formacion"],"tipo_hallazgo": ["muda", "dafo", "observacion"],"tipo_informe": ["diagnostico", "seguimiento", "cierre"],"tipo_muda": ["sobreproduccion", "esperas", "transporte", "sobreprocesos", "inventario", "movimientos", "defectos_mermas"],"tipo_negocio": ["restaurante", "bar", "cafeteria", "dark_kitchen", "hotel", "grupo", "catering", "otro"],"tipo_plantilla": ["auditoria", "sop", "checklist", "informe"],"unidad_compra": ["kg", "l", "ud"]
           }
         }
 } as const

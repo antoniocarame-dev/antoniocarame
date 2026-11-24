@@ -23,7 +23,7 @@ export default async function LayoutProyecto({ children, params }: { children: R
       <Cabecera eyebrow={[p.codigo, p.negocios?.nombre, p.negocios?.localidad].filter(Boolean).join(" · ")} titulo={p.titulo}
         sub={<span className="mt-1 inline-flex flex-wrap items-center gap-2">{TIPOS_PROYECTO[p.tipo] ?? p.tipo}<EstadoProyecto estado={p.estado} /><Semaforo salud={p.salud} /></span>} />
       <Pestanas base={`/proyectos/${id}`} items={[...PESTANAS,
-        { href: "/costes", label: "Costes y compras", fase: "F2" }, { href: "/escandallos", label: "Escandallos", fase: "F2" },
+        { href: "/costes", label: "Costes y compras" }, { href: "/escandallos", label: "Escandallos y menú" },
         { href: "/resultados", label: "Ventas y resultados", fase: "F3" }, { href: "/informes", label: "Informes", fase: "F3" }]} />
       {children}
     </>
